@@ -26,6 +26,8 @@ model Event {
   createdAt        DateTime           @default(now())
   updatedAt        DateTime           @updatedAt
   name             String             @db.VarChar(255)
+  startDate        DateTime
+  endDate          DateTime
   description      String?
   Hospital         Hospital[]
   Ambulance        Ambulance[]

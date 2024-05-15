@@ -16,7 +16,6 @@ export class TenantService {
   }
 
   async findOne(id: number) {
-    console.log(id);
     return this.prisma.tenant.findUnique({
       where: { id },
     });
