@@ -1,0 +1,155 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider          = "postgresql"
+  url               = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
+}
+
+model Tenant {
+  id    Int     @id @default(autoincrement())
+  name  String  @db.VarChar(255)
+  url   String  @db.VarChar(255)
+  Event Event[]
+}
+
+model Event {
+  id               Int                @id @default(autoincrement())
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  name             String             @db.VarChar(255)
+  description      String?
+  Hospital         Hospital[]
+  Ambulance        Ambulance[]
+  PatientEncounter PatientEncounter[]
+  tenantId         Int
+  tenant           Tenant             @relation(fields: [tenantId], references: [id])
+}
+
+model PatientEncounter {
+  id             Int             @id @default(autoincrement())
+  qrCode         String?
+  rfid           String
+  timeIn         DateTime
+  methodIn       MethodIn
+  ambulanceIn    Ambulance?      @relation(name: "AmbulanceIn", fields: [ambulanceInId], references: [id])
+  ambulanceInId  Int?
+  gender         Gender?
+  age            Int?
+  patientType    PatientType?
+  triage         TriageCategory?
+  chiefComplaint ChiefComplaint?
+  timeOut        DateTime?
+  methodOut      MethodOut?
+  ambulanceOut   Ambulance?      @relation(name: "AmbulanceOut", fields: [ambulanceOutId], references: [id])
+  ambulanceOutId Int?
+  hospitalOut    Hospital?       @relation(fields: [hospitalOutId], references: [id])
+  hospitalOutId  Int?
+  event          Event           @relation(fields: [eventId], references: [id])
+  eventId        Int
+  userId         String
+  aidPost        String
+  comments       String?
+  attachments    String[]
+}
+
+model Hospital {
+  id               Int                @id @default(autoincrement())
+  name             String
+  comment          String
+  order            Int
+  event            Event              @relation(fields: [eventId], references: [id])
+  eventId          Int
+  PatientEncounter PatientEncounter[]
+}
+
+model Ambulance {
+  id                Int                @id @default(autoincrement())
+  name              String
+  comment           String
+  order             Int
+  event             Event              @relation(fields: [eventId], references: [id])
+  eventId           Int
+  encountersWithIn  PatientEncounter[] @relation(name: "AmbulanceIn")
+  encountersWithOut PatientEncounter[] @relation(name: "AmbulanceOut")
+}
+
+enum MethodIn {
+  SELF
+  WITH_SUPPORT
+  CREW_WALKING
+  STRETCHER
+  AMBULANCE
+  SECURITY_POLICE
+}
+
+enum MethodOut {
+  BACK_TO_FESTIVAL
+  OTHER_STATION
+  HOME
+  TO_HOSPITAL_SELF
+  TO_HOSPITAL_NDLZ
+  TO_HOSPITAL_DGH
+  LEFT_SELF
+  LEFT_FORGOT
+}
+
+enum TriageCategory {
+  RED
+  YELLOW
+  GREEN
+  WHITE
+}
+
+enum ChiefComplaint {
+  ADEMHALING
+  HYPERVENTILATIE
+  ALLERGIE
+  LOKALE_REACTIE
+  ANAFYLAXIE
+  BEWEGINGSSTELSEL
+  VERSTUIKING
+  RADIOGRAFIE
+  BRANDWONDE
+  BEWUSTZIJNSVERLIES
+  FLAUWTE_SYNCOPE
+  EPILEPSIE
+  EIGEN_MEDICATIE
+  HARTKLACHTEN
+  HOOFDPIJN
+  HUIDWONDE
+  HECHTING
+  INSECTENBEET
+  ONTSTEKING
+  INTOXICATIE
+  ALCOHOL
+  DRUGS
+  KEELPIJN
+  MAAG_DARM
+  OOGLETSEL
+  TANDPIJN
+  ANDERE
+  PLEISTER
+  MAANDVERBAND
+  ZONNECREME
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum PatientType {
+  VISITOR
+  CREW
+  EXTERNAL
+}
