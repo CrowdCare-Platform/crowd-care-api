@@ -1,5 +1,5 @@
 // createTenant Dto
-import { IsDate, IsNotEmpty, IsString } from 'class-validator';
+import { IsDateString, IsNotEmpty, IsString } from 'class-validator';
 
 export class CreateEventDto {
   @IsString()
@@ -9,9 +9,9 @@ export class CreateEventDto {
   @IsString()
   description: string;
 
-  @IsDate()
+  @IsDateString()
   startDate: Date;
 
-  @IsDate()
+  @IsDateString()
   endDate: Date;
 }
