@@ -8,7 +8,13 @@ import { TenantModule } from './tenant/tenant.module';
 import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
-  imports: [HealthModule, EventModule, EncounterModule, TenantModule, PrismaModule],
+  imports: [
+    HealthModule,
+    EventModule,
+    EncounterModule,
+    TenantModule,
+    PrismaModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

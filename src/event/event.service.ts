@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateAmbulanceDto } from "./dto/createAmbulance.dto";
+import { CreateAmbulanceDto } from './dto/createAmbulance.dto';
 
 @Injectable()
 export class EventService {
@@ -63,8 +63,11 @@ export class EventService {
     return ambulance;
   }
 
-
-  async createAmbulance(id: number, createAmbulanceDto: CreateAmbulanceDto, tenantId: number) {
+  async createAmbulance(
+    id: number,
+    createAmbulanceDto: CreateAmbulanceDto,
+    tenantId: number,
+  ) {
     await this.findOne(id, tenantId);
     return this.prisma.ambulance.create({
       data: {
@@ -74,7 +77,12 @@ export class EventService {
     });
   }
 
-  async updateAmbulance(id: number, ambulanceId: number, createAmbulanceDto: CreateAmbulanceDto, tenantId: number) {
+  async updateAmbulance(
+    id: number,
+    ambulanceId: number,
+    createAmbulanceDto: CreateAmbulanceDto,
+    tenantId: number,
+  ) {
     await this.findOne(id, tenantId);
     return this.prisma.ambulance.update({
       where: { id: ambulanceId },
