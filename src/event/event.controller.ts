@@ -13,7 +13,7 @@ import { Event as EventModel } from '@prisma/client';
 import { CreateEventDto } from './dto/createEvent.dto';
 import { EventService } from './event.service';
 import { CreateAmbulanceDto } from './dto/createAmbulance.dto';
-import { CreateHospitalDto } from "./dto/createHospital.dto";
+import { CreateHospitalDto } from './dto/createHospital.dto';
 
 @Controller('event')
 export class EventController {

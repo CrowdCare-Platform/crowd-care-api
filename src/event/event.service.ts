@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateAmbulanceDto } from './dto/createAmbulance.dto';
-import { CreateHospitalDto } from "./dto/createHospital.dto";
+import { CreateHospitalDto } from './dto/createHospital.dto';
 
 @Injectable()
 export class EventService {
@@ -149,5 +149,4 @@ export class EventService {
       where: { id: hospitalId },
     });
   }
-
 }
