@@ -26,9 +26,10 @@ export class TenantService {
   }
 
   async delete(id: number) {
-    return this.prisma.tenant.delete({
+    await this.prisma.tenant.delete({
       where: { id },
     });
+    return null;
   }
 
   async update(id: number, updateTenantDto: Prisma.TenantUpdateInput) {

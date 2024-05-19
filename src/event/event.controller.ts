@@ -14,6 +14,7 @@ import { CreateEventDto } from './dto/createEvent.dto';
 import { EventService } from './event.service';
 import { CreateAmbulanceDto } from './dto/createAmbulance.dto';
 import { CreateHospitalDto } from './dto/createHospital.dto';
+import {CreateAidPostDto} from "./dto/createAidPost.dto";
 
 @Controller('event')
 export class EventController {
@@ -206,5 +207,72 @@ export class EventController {
       throw new BadRequestException('Tenant ID is invalid');
     }
     return this.eventService.deleteHospital(id, hospitalId, tenantId);
+  }
+
+  @Get('/:id/aidPost')
+  async getAidPosts(@Req() req, @Param('id') id: number) {
+    const tenantId = +req.headers['tenant-id'];
+    if (!tenantId || isNaN(tenantId)) {
+      throw new BadRequestException('Tenant ID is invalid');
+    }
+    return this.eventService.getAidPosts(id, tenantId);
+  }
+
+  @Get('/:id/aidPost/:aidPostId')
+  async getAidPost (
+      @Req() req,
+      @Param('id') id: number,
+      @Param('aidPostId') aidPostId: number,
+  ) {
+    const tenantId = +req.headers['tenant-id'];
+    if (!tenantId || isNaN(tenantId)) {
+      throw new BadRequestException('Tenant ID is invalid');
+    }
+    return this.eventService.getAidPost(id, aidPostId, tenantId);
+  }
+
+  @Post('/:id/aidPost')
+  async createAidPost(
+      @Req() req,
+      @Param('id') id: number,
+      @Body() createAidPostDto: CreateAidPostDto,
+  ) {
+    const tenantId = +req.headers['tenant-id'];
+    if (!tenantId || isNaN(tenantId)) {
+      throw new BadRequestException('Tenant ID is invalid');
+    }
+    return this.eventService.createAidPost(id, createAidPostDto, tenantId);
+  }
+
+  @Put('/:id/aidPost/:aidPostId')
+  async updateAidPost(
+      @Req() req,
+      @Param('id') id: number,
+      @Param('aidPostId') aidPostId: number,
+      @Body() createAidPostDto: CreateAidPostDto,
+  ) {
+    const tenantId = +req.headers['tenant-id'];
+    if (!tenantId || isNaN(tenantId)) {
+      throw new BadRequestException('Tenant ID is invalid');
+    }
+    return this.eventService.updateAidPost(
+        id,
+        aidPostId,
+        createAidPostDto,
+        tenantId,
+    );
+  }
+
+  @Delete('/:id/aidPost/:aidPostId')
+  async deleteAidPost(
+      @Req() req,
+      @Param('id') id: number,
+      @Param('aidPostId') aidPostId: number,
+  ) {
+    const tenantId = +req.headers['tenant-id'];
+    if (!tenantId || isNaN(tenantId)) {
+      throw new BadRequestException('Tenant ID is invalid');
+    }
+    return this.eventService.deleteAidPost(id, aidPostId, tenantId);
   }
 }

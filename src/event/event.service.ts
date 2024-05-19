@@ -3,6 +3,7 @@ import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateAmbulanceDto } from './dto/createAmbulance.dto';
 import { CreateHospitalDto } from './dto/createHospital.dto';
+import { CreateAidPostDto } from './dto/createAidPost.dto';
 
 @Injectable()
 export class EventService {
@@ -30,9 +31,10 @@ export class EventService {
   }
 
   async delete(id: number, tenantId) {
-    return this.prisma.event.delete({
+    await this.prisma.event.delete({
       where: { id, tenantId },
     });
+    return null;
   }
 
   async update(
@@ -93,9 +95,10 @@ export class EventService {
 
   async deleteAmbulance(id: number, ambulanceId: number, tenantId: number) {
     await this.findOne(id, tenantId);
-    return this.prisma.ambulance.delete({
+    await this.prisma.ambulance.delete({
       where: { id: ambulanceId },
     });
+    return null;
   }
 
   async getHospitals(eventId: number, tenantId: number) {
@@ -145,8 +148,62 @@ export class EventService {
 
   async deleteHospital(id: number, hospitalId: number, tenantId: number) {
     await this.findOne(id, tenantId);
-    return this.prisma.hospital.delete({
+    await this.prisma.hospital.delete({
       where: { id: hospitalId },
     });
+    return null;
+  }
+
+  async getAidPosts(eventId: number, tenantId: number) {
+    await this.findOne(eventId, tenantId);
+    return this.prisma.aidPost.findMany({
+      where: { eventId },
+    });
+  }
+
+  async getAidPost(eventId: number, aidPostId: number, tenantId: number) {
+    await this.findOne(eventId, tenantId);
+    const aidPost = await this.prisma.aidPost.findUnique({
+      where: { id: aidPostId, eventId },
+    });
+    if (!aidPost) {
+      throw new NotFoundException('Aidpost not found');
+    }
+    return aidPost;
+  }
+
+  async createAidPost(
+    id: number,
+    createAidPostDto: CreateAidPostDto,
+    tenantId: number,
+  ) {
+    await this.findOne(id, tenantId);
+    return this.prisma.aidPost.create({
+      data: {
+        ...createAidPostDto,
+        event: { connect: { id } },
+      },
+    });
+  }
+
+  async updateAidPost(
+    id: number,
+    aidPostId: number,
+    createAidPostDto: CreateAidPostDto,
+    tenantId: number,
+  ) {
+    await this.findOne(id, tenantId);
+    return this.prisma.aidPost.update({
+      where: { id: aidPostId },
+      data: createAidPostDto,
+    });
+  }
+
+  async deleteAidPost(id: number, aidPostId: number, tenantId: number) {
+    await this.findOne(id, tenantId);
+    await this.prisma.aidPost.delete({
+      where: { id: aidPostId },
+    });
+    return null;
   }
 }

@@ -22,18 +22,26 @@ model Tenant {
 }
 
 model Event {
-  id               Int                @id @default(autoincrement())
-  createdAt        DateTime           @default(now())
-  updatedAt        DateTime           @updatedAt
-  name             String             @db.VarChar(255)
-  startDate        DateTime
-  endDate          DateTime
-  description      String?
-  Hospital         Hospital[]
-  Ambulance        Ambulance[]
-  PatientEncounter PatientEncounter[]
-  tenantId         Int
-  tenant           Tenant             @relation(fields: [tenantId], references: [id])
+  id          Int         @id @default(autoincrement())
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  name        String      @db.VarChar(255)
+  startDate   DateTime
+  endDate     DateTime
+  description String?
+  Hospital    Hospital[]
+  Ambulance   Ambulance[]
+  tenantId    Int
+  tenant      Tenant      @relation(fields: [tenantId], references: [id])
+  AidPost     AidPost[]
+}
+
+model AidPost {
+  id                Int                @id @default(autoincrement())
+  name              String             @db.VarChar(255)
+  patientEncounters PatientEncounter[]
+  event             Event              @relation(fields: [eventId], references: [id])
+  eventId           Int
 }
 
 model PatientEncounter {
@@ -55,22 +63,21 @@ model PatientEncounter {
   ambulanceOutId Int?
   hospitalOut    Hospital?       @relation(fields: [hospitalOutId], references: [id])
   hospitalOutId  Int?
-  event          Event           @relation(fields: [eventId], references: [id])
-  eventId        Int
   userId         String
-  aidPost        String
+  aidPost        AidPost         @relation(fields: [aidPostId], references: [id])
+  aidPostId      Int
   comments       String?
   attachments    String[]
 }
 
 model Hospital {
-  id               Int                @id @default(autoincrement())
-  name             String
-  comment          String
-  order            Int
-  event            Event              @relation(fields: [eventId], references: [id])
-  eventId          Int
-  PatientEncounter PatientEncounter[]
+  id                Int                @id @default(autoincrement())
+  name              String
+  comment           String
+  order             Int
+  event             Event              @relation(fields: [eventId], references: [id])
+  eventId           Int
+  patientEncounters PatientEncounter[]
 }
 
 model Ambulance {
