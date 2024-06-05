@@ -25,9 +25,9 @@ export class TenantController {
     return this.tenantService.findAll();
   }
 
-  @Get('/:id')
-  async findOne(@Param('id') id: number): Promise<TenantModel> {
-    return this.tenantService.findOne(id);
+  @Get('/:domain')
+  async findOne(@Param('domain') domain: string): Promise<TenantModel> {
+    return this.tenantService.findOne(domain);
   }
 
   @Delete('/:id')

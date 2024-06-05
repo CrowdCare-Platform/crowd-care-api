@@ -57,6 +57,10 @@ export class CreatePatientEncounterDto {
 
   @IsDateString()
   @IsOptional()
+  timeStartTreatment?: string;
+
+  @IsDateString()
+  @IsOptional()
   timeOut?: string;
 
   @IsEnum(MethodOut)

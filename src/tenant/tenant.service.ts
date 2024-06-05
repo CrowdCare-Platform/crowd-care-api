@@ -15,9 +15,9 @@ export class TenantService {
     return this.prisma.tenant.findMany();
   }
 
-  async findOne(id: number) {
-    const tenant = await this.prisma.tenant.findUnique({
-      where: { id },
+  async findOne(url: string) {
+    const tenant = await this.prisma.tenant.findFirst({
+      where: { url },
     });
     if (!tenant) {
       throw new NotFoundException('Tenant not found');

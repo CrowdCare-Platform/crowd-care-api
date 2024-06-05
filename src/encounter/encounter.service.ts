@@ -49,6 +49,9 @@ export class EncounterService {
         chiefComplaint: createEncounterDto.chiefComplaint
           ? createEncounterDto.chiefComplaint
           : undefined,
+        timeStartTreatment: createEncounterDto.timeStartTreatment
+          ? new Date(createEncounterDto.timeStartTreatment)
+          : undefined,
         timeOut: createEncounterDto.timeOut
           ? new Date(createEncounterDto.timeOut)
           : undefined,
@@ -158,6 +161,9 @@ export class EncounterService {
           : undefined,
         chiefComplaint: createEncounterDto.chiefComplaint
           ? createEncounterDto.chiefComplaint
+          : undefined,
+        timeStartTreatment: createEncounterDto.timeStartTreatment
+          ? new Date(createEncounterDto.timeStartTreatment)
           : undefined,
         timeOut: createEncounterDto.timeOut
           ? new Date(createEncounterDto.timeOut)

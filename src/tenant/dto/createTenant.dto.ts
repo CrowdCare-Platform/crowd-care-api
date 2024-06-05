@@ -8,5 +8,13 @@ export class CreateTenantDto {
 
   @IsString()
   @IsNotEmpty()
+  description: string;
+
+  @IsString()
+  @IsNotEmpty()
+  logo: string;
+
+  @IsString()
+  @IsNotEmpty()
   url: string;
 }
