@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "Tenant" ADD COLUMN     "description" VARCHAR(255) NOT NULL DEFAULT '',
+ADD COLUMN     "logo" VARCHAR(255) NOT NULL DEFAULT '';
