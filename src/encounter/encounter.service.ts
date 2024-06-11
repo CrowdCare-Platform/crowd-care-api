@@ -4,6 +4,8 @@ import { PatientEncounter as PatientEncounterModel } from '.prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { EventService } from '../event/event.service';
 import { QuerySearchParamsDto } from './dto/querySearchParams.dto';
+import {RealTimeStatsOfEventDto} from "./dto/realTimeStatsOfEventDto";
+import {TriageCategory} from "@prisma/client";
 
 @Injectable()
 export class EncounterService {
@@ -85,6 +87,30 @@ export class EncounterService {
     query: QuerySearchParamsDto,
     tenantId: number,
   ): Promise<PatientEncounterModel[]> {
+    if (!query.aidPostId) {
+      const aidPosts = await this.eventService.getAidPosts(
+        +query.eventId,
+        tenantId,
+      );
+      let active: boolean | undefined;
+      if (query.active) {
+        active = !!+query.active;
+      }
+      return this.prisma.patientEncounter.findMany({
+        where: {
+          aidPostId: {
+            in: aidPosts.map((aidPost) => aidPost.id),
+          },
+          rfid: query.rfid ? query.rfid : undefined,
+          qrCode: query.qrCode ? query.qrCode : undefined,
+          triage: query.triage ? query.triage : undefined,
+          timeOut: active === undefined ? undefined : active ? null : {
+            not: null,
+          },
+        },
+        orderBy: { timeIn: 'asc' },
+      });
+    }
     await this.eventService.getAidPost(
       +query.eventId,
       +query.aidPostId,
@@ -97,6 +123,7 @@ export class EncounterService {
         rfid: query.rfid ? query.rfid : undefined,
         qrCode: query.qrCode ? query.qrCode : undefined,
         triage: query.triage ? query.triage : undefined,
+        timeIn: query.active ? null : undefined,
       },
       orderBy: { timeIn: 'asc' },
     });
@@ -200,6 +227,101 @@ export class EncounterService {
       where: {
         id: id,
       },
+    });
+  }
+
+  async getRealTimeStatsOfEvent(
+      eventId: number,
+      tenantId: number,
+  ): Promise<RealTimeStatsOfEventDto[]> {
+    // Get all aid posts of the event
+    const aidPosts = await this.eventService.getAidPosts(eventId, tenantId);
+    // Get the number of encounters with timeOut = null for each aid post
+    const redEncountersPerAidPost = await this.prisma.patientEncounter.groupBy({
+        by: ['aidPostId'],
+        where: {
+            aidPostId: {
+            in: aidPosts.map((aidPost) => aidPost.id),
+            },
+            timeOut: null,
+            triage: TriageCategory.RED
+        },
+        _count: {
+            id: true,
+        },
+    });
+
+    const yellowEncountersPerAidPost = await this.prisma.patientEncounter.groupBy({
+      by: ['aidPostId'],
+      where: {
+        aidPostId: {
+          in: aidPosts.map((aidPost) => aidPost.id),
+        },
+        timeOut: null,
+        triage: TriageCategory.YELLOW
+      },
+      _count: {
+        id: true,
+      },
+    });
+
+    const greenEncountersPerAidPost = await this.prisma.patientEncounter.groupBy({
+      by: ['aidPostId'],
+      where: {
+        aidPostId: {
+          in: aidPosts.map((aidPost) => aidPost.id),
+        },
+        timeOut: null,
+        triage: TriageCategory.GREEN
+      },
+      _count: {
+        id: true,
+      },
+    });
+
+    const whiteEncountersPerAidPost = await this.prisma.patientEncounter.groupBy({
+      by: ['aidPostId'],
+      where: {
+        aidPostId: {
+          in: aidPosts.map((aidPost) => aidPost.id),
+        },
+        timeOut: null,
+        triage: TriageCategory.WHITE
+      },
+      _count: {
+        id: true,
+      },
+    });
+
+    const unknownEncountersPerAidPost = await this.prisma.patientEncounter.groupBy({
+      by: ['aidPostId'],
+      where: {
+        aidPostId: {
+          in: aidPosts.map((aidPost) => aidPost.id),
+        },
+        timeOut: null,
+        triage: null
+      },
+      _count: {
+        id: true,
+      },
+    });
+
+return aidPosts.map((aidPost) => {
+      const red = redEncountersPerAidPost.find((encounter) => encounter.aidPostId === aidPost.id);
+      const yellow = yellowEncountersPerAidPost.find((encounter) => encounter.aidPostId === aidPost.id);
+      const green = greenEncountersPerAidPost.find((encounter) => encounter.aidPostId === aidPost.id);
+      const white = whiteEncountersPerAidPost.find((encounter) => encounter.aidPostId === aidPost.id);
+      const unknown = unknownEncountersPerAidPost.find((encounter) => encounter.aidPostId === aidPost.id);
+
+      return {
+        aidPostId: aidPost.id,
+        RED: red ? red._count.id : 0,
+        YELLOW: yellow ? yellow._count.id : 0,
+        GREEN: green ? green._count.id : 0,
+        WHITE: white ? white._count.id : 0,
+        unknown: unknown ? unknown._count.id : 0,
+      };
     });
   }
 }

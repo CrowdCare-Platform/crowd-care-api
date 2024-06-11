@@ -1,4 +1,4 @@
-import { IsEnum, IsOptional, IsString } from 'class-validator';
+import {IsBoolean, IsEnum, IsNumber, IsOptional, IsString} from 'class-validator';
 import { TriageCategory } from '@prisma/client';
 
 export class QuerySearchParamsDto {
@@ -6,7 +6,8 @@ export class QuerySearchParamsDto {
   eventId: string;
 
   @IsString()
-  aidPostId: string;
+  @IsOptional()
+  aidPostId?: string;
 
   @IsString()
   @IsOptional()
@@ -19,4 +20,8 @@ export class QuerySearchParamsDto {
   @IsOptional()
   @IsEnum(TriageCategory)
   triage?: TriageCategory;
+
+  @IsOptional()
+  @IsString()
+  active?: string;
 }

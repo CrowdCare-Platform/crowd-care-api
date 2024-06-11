@@ -14,10 +14,28 @@ import { PatientEncounter as PatientEncounterModel } from '.prisma/client';
 import { EncounterService } from './encounter.service';
 import { CreatePatientEncounterDto } from './dto/createPatientEncounter.dto';
 import { QuerySearchParamsDto } from './dto/querySearchParams.dto';
+import {RealTimeStatsOfEventDto} from "./dto/realTimeStatsOfEventDto";
+import {QueryStatsParamsDto} from "./dto/queryStatsParams.dto";
 
 @Controller('encounter')
 export class EncounterController {
   constructor(private readonly encounterService: EncounterService) {}
+
+  @Get('/stats')
+  async getRealTimeStatsOfEvent(
+      @Req() req,
+      @Query() query: QueryStatsParamsDto,
+  ): Promise<RealTimeStatsOfEventDto[]> {
+    const tenantId = +req.headers['tenant-id'];
+    if (isNaN(+query.eventId)) {
+      throw new BadRequestException('Event ID is invalid');
+    }
+    if (!tenantId || isNaN(tenantId)) {
+      throw new BadRequestException('Tenant ID is invalid');
+    }
+
+    return this.encounterService.getRealTimeStatsOfEvent(+query.eventId, tenantId);
+  }
 
   @Post()
   async create(
@@ -55,12 +73,13 @@ export class EncounterController {
     if (isNaN(+query.eventId)) {
       throw new BadRequestException('Event ID is invalid');
     }
-    if (isNaN(+query.aidPostId)) {
-      throw new BadRequestException('AidPost ID is invalid');
-    }
     if (!tenantId || isNaN(tenantId)) {
       throw new BadRequestException('Tenant ID is invalid');
     }
+    if (query.active && isNaN(+query.active)) {
+      throw new BadRequestException('Active parameter is invalid');
+    }
+
     return this.encounterService.findAll(query, tenantId);
   }
 

@@ -54,7 +54,7 @@ export class EventController {
   }
 
   @Delete('/:id')
-  async delete(@Req() req, @Param() id: number): Promise<EventModel> {
+  async delete(@Req() req, @Param('id') id: number): Promise<EventModel> {
     const tenantId = +req.headers['tenant-id'];
     if (!tenantId || isNaN(tenantId)) {
       throw new BadRequestException('Tenant ID is invalid');
