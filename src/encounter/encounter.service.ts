@@ -5,7 +5,6 @@ import { PrismaService } from '../prisma/prisma.service';
 import { EventService } from '../event/event.service';
 import { QuerySearchParamsDto } from './dto/querySearchParams.dto';
 import {RealTimeStatsOfEventDto} from "./dto/realTimeStatsOfEventDto";
-import {TriageCategory} from "@prisma/client";
 
 @Injectable()
 export class EncounterService {
@@ -209,80 +208,67 @@ export class EncounterService {
       eventId: number,
       tenantId: number,
   ): Promise<RealTimeStatsOfEventDto[]> {
-    // Get all aid posts of the event
+    // Step 1: Get all aid posts of the event
     const aidPosts = await this.eventService.getAidPosts(eventId, tenantId);
+    const aidPostIds = aidPosts.map((aidPost) => aidPost.id);
 
-    const redEncountersPerAidPost = await this.prisma.patientEncounter.groupBy({
+    // Step 2: Run all groupBy queries concurrently
+    const [
+      redEncountersPerAidPost,
+      yellowEncountersPerAidPost,
+      greenEncountersPerAidPost,
+      whiteEncountersPerAidPost,
+      unknownEncountersPerAidPost,
+    ] = await Promise.all([
+      this.prisma.patientEncounter.groupBy({
         by: ['aidPostId'],
         where: {
-            aidPostId: {
-            in: aidPosts.map((aidPost) => aidPost.id),
-            },
-            timeOut: null,
-            triage: TriageCategory.RED
+          aidPostId: { in: aidPostIds },
+          timeOut: null,
+          triage: 'RED',
         },
-        _count: {
-            id: true,
+        _count: { id: true },
+      }),
+      this.prisma.patientEncounter.groupBy({
+        by: ['aidPostId'],
+        where: {
+          aidPostId: { in: aidPostIds },
+          timeOut: null,
+          triage: 'YELLOW',
         },
-    });
+        _count: { id: true },
+      }),
+      this.prisma.patientEncounter.groupBy({
+        by: ['aidPostId'],
+        where: {
+          aidPostId: { in: aidPostIds },
+          timeOut: null,
+          triage: 'GREEN',
+        },
+        _count: { id: true },
+      }),
+      this.prisma.patientEncounter.groupBy({
+        by: ['aidPostId'],
+        where: {
+          aidPostId: { in: aidPostIds },
+          timeOut: null,
+          triage: 'WHITE',
+        },
+        _count: { id: true },
+      }),
+      this.prisma.patientEncounter.groupBy({
+        by: ['aidPostId'],
+        where: {
+          aidPostId: { in: aidPostIds },
+          timeOut: null,
+          triage: null,
+        },
+        _count: { id: true },
+      }),
+    ]);
 
-    const yellowEncountersPerAidPost = await this.prisma.patientEncounter.groupBy({
-      by: ['aidPostId'],
-      where: {
-        aidPostId: {
-          in: aidPosts.map((aidPost) => aidPost.id),
-        },
-        timeOut: null,
-        triage: TriageCategory.YELLOW
-      },
-      _count: {
-        id: true,
-      },
-    });
-
-    const greenEncountersPerAidPost = await this.prisma.patientEncounter.groupBy({
-      by: ['aidPostId'],
-      where: {
-        aidPostId: {
-          in: aidPosts.map((aidPost) => aidPost.id),
-        },
-        timeOut: null,
-        triage: TriageCategory.GREEN
-      },
-      _count: {
-        id: true,
-      },
-    });
-
-    const whiteEncountersPerAidPost = await this.prisma.patientEncounter.groupBy({
-      by: ['aidPostId'],
-      where: {
-        aidPostId: {
-          in: aidPosts.map((aidPost) => aidPost.id),
-        },
-        timeOut: null,
-        triage: TriageCategory.WHITE
-      },
-      _count: {
-        id: true,
-      },
-    });
-
-    const unknownEncountersPerAidPost = await this.prisma.patientEncounter.groupBy({
-      by: ['aidPostId'],
-      where: {
-        aidPostId: {
-          in: aidPosts.map((aidPost) => aidPost.id),
-        },
-        timeOut: null,
-        triage: null
-      },
-      _count: {
-        id: true,
-      },
-    });
-
-return aidPosts.map((aidPost) => {
+    // Step 3: Combine results
+    return aidPosts.map((aidPost) => {
       const red = redEncountersPerAidPost.find((encounter) => encounter.aidPostId === aidPost.id);
       const yellow = yellowEncountersPerAidPost.find((encounter) => encounter.aidPostId === aidPost.id);
       const green = greenEncountersPerAidPost.find((encounter) => encounter.aidPostId === aidPost.id);

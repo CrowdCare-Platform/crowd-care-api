@@ -8,7 +8,7 @@ import {
   Post,
   Put,
   Query,
-  Req,
+  Req, UseGuards,
 } from '@nestjs/common';
 import { PatientEncounter as PatientEncounterModel } from '.prisma/client';
 import { EncounterService } from './encounter.service';
@@ -16,12 +16,16 @@ import { CreatePatientEncounterDto } from './dto/createPatientEncounter.dto';
 import { QuerySearchParamsDto } from './dto/querySearchParams.dto';
 import {RealTimeStatsOfEventDto} from "./dto/realTimeStatsOfEventDto";
 import {QueryStatsParamsDto} from "./dto/queryStatsParams.dto";
+import {LogtoAuthGuard} from "../auth/auth.guard";
+import {Roles} from "../auth/roles.decorator";
 
 @Controller('encounter')
+@UseGuards(LogtoAuthGuard)
 export class EncounterController {
   constructor(private readonly encounterService: EncounterService) {}
 
   @Get('/stats')
+  @Roles(['user', 'admin', 'coordinator'])
   async getRealTimeStatsOfEvent(
       @Req() req,
       @Query() query: QueryStatsParamsDto,
