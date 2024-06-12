@@ -87,30 +87,6 @@ export class EncounterService {
     query: QuerySearchParamsDto,
     tenantId: number,
   ): Promise<PatientEncounterModel[]> {
-    if (!query.aidPostId) {
-      const aidPosts = await this.eventService.getAidPosts(
-        +query.eventId,
-        tenantId,
-      );
-      let active: boolean | undefined;
-      if (query.active) {
-        active = !!+query.active;
-      }
-      return this.prisma.patientEncounter.findMany({
-        where: {
-          aidPostId: {
-            in: aidPosts.map((aidPost) => aidPost.id),
-          },
-          rfid: query.rfid ? query.rfid : undefined,
-          qrCode: query.qrCode ? query.qrCode : undefined,
-          triage: query.triage ? query.triage : undefined,
-          timeOut: active === undefined ? undefined : active ? null : {
-            not: null,
-          },
-        },
-        orderBy: { timeIn: 'asc' },
-      });
-    }
     await this.eventService.getAidPost(
       +query.eventId,
       +query.aidPostId,
@@ -236,7 +212,7 @@ export class EncounterService {
   ): Promise<RealTimeStatsOfEventDto[]> {
     // Get all aid posts of the event
     const aidPosts = await this.eventService.getAidPosts(eventId, tenantId);
-    // Get the number of encounters with timeOut = null for each aid post
+
     const redEncountersPerAidPost = await this.prisma.patientEncounter.groupBy({
         by: ['aidPostId'],
         where: {

@@ -73,11 +73,11 @@ export class EncounterController {
     if (isNaN(+query.eventId)) {
       throw new BadRequestException('Event ID is invalid');
     }
+    if (isNaN(+query.aidPostId)) {
+      throw new BadRequestException('AidPost ID is invalid');
+    }
     if (!tenantId || isNaN(tenantId)) {
       throw new BadRequestException('Tenant ID is invalid');
-    }
-    if (query.active && isNaN(+query.active)) {
-      throw new BadRequestException('Active parameter is invalid');
     }
 
     return this.encounterService.findAll(query, tenantId);

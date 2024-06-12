@@ -6,8 +6,7 @@ export class QuerySearchParamsDto {
   eventId: string;
 
   @IsString()
-  @IsOptional()
-  aidPostId?: string;
+  aidPostId: string;
 
   @IsString()
   @IsOptional()
@@ -20,8 +19,4 @@ export class QuerySearchParamsDto {
   @IsOptional()
   @IsEnum(TriageCategory)
   triage?: TriageCategory;
-
-  @IsOptional()
-  @IsString()
-  active?: string;
 }
