@@ -99,7 +99,6 @@ export class EncounterService {
         rfid: query.rfid ? query.rfid : undefined,
         qrCode: query.qrCode ? query.qrCode : undefined,
         triage: query.triage ? query.triage : undefined,
-        timeIn: query.active ? null : undefined,
       },
       orderBy: { timeIn: 'asc' },
     });
