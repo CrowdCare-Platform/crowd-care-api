@@ -25,7 +25,7 @@ export class EncounterController {
   constructor(private readonly encounterService: EncounterService) {}
 
   @Get('/stats')
-  @Roles(['user', 'admin', 'coordinator'])
+  @Roles(['admin', 'coordinator'])
   async getRealTimeStatsOfEvent(
       @Req() req,
       @Query() query: QueryStatsParamsDto,
@@ -42,6 +42,7 @@ export class EncounterController {
   }
 
   @Post()
+  @Roles(['user'])
   async create(
     @Req() req,
     @Query('eventId') eventId: number,
@@ -69,6 +70,7 @@ export class EncounterController {
   }
 
   @Get()
+  @Roles(['admin'])
   async findAll(
     @Req() req,
     @Query() query: QuerySearchParamsDto,
@@ -88,6 +90,7 @@ export class EncounterController {
   }
 
   @Get(':id')
+  @Roles(['admin'])
   async findOne(
     @Req() req,
     @Query('eventId') eventId: number,
@@ -111,6 +114,7 @@ export class EncounterController {
   }
 
   @Put(':id')
+  @Roles(['admin'])
   async update(
     @Req() req,
     @Query('eventId') eventId: number,
@@ -141,6 +145,7 @@ export class EncounterController {
   }
 
   @Delete(':id')
+  @Roles(['admin'])
   async delete(
     @Req() req,
     @Query('eventId') eventId: number,
