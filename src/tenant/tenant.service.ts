@@ -11,8 +11,8 @@ export class TenantService {
     const newTenant = await this.prisma.tenant.create({
       data: createTenantDto,
     });
-    await this.cacheManager.set(`tenant-url-${newTenant.url}`, newTenant, 3600000);
-    await this.cacheManager.set(`tenant-id-${newTenant.id}`, newTenant, 3600000);
+    await this.cacheManager.set(`tenant-url-${newTenant.url}`, newTenant);
+    await this.cacheManager.set(`tenant-id-${newTenant.id}`, newTenant);
     return newTenant;
   }
 
@@ -22,7 +22,7 @@ export class TenantService {
       return cachedValue;
     } else {
         const tenants = await this.prisma.tenant.findMany();
-        await this.cacheManager.set('allTenants', tenants, 3600000);
+        await this.cacheManager.set('allTenants', tenants);
         return tenants;
     }
   }
@@ -38,7 +38,7 @@ export class TenantService {
         if (!tenant) {
             throw new NotFoundException('Tenant not found');
         }
-        await this.cacheManager.set(`tenant-url-${url}`, tenant, 3600000);
+        await this.cacheManager.set(`tenant-url-${url}`, tenant);
         return tenant;
     }
   }
@@ -54,7 +54,7 @@ export class TenantService {
         if (!tenant) {
             throw new NotFoundException('Tenant not found');
         }
-        await this.cacheManager.set(`tenant-id-${id}`, tenant, 3600000);
+        await this.cacheManager.set(`tenant-id-${id}`, tenant);
         return tenant;
     }
   }

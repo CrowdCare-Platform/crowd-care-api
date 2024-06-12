@@ -7,7 +7,7 @@ import {CacheModule} from "@nestjs/cache-manager";
 @Module({
   providers: [TenantService],
   controllers: [TenantController],
-  imports: [PrismaModule, CacheModule.register()],
+  imports: [PrismaModule],
   exports: [TenantService],
 })
 export class TenantModule {}

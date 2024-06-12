@@ -7,6 +7,7 @@ import { EncounterModule } from './encounter/encounter.module';
 import { TenantModule } from './tenant/tenant.module';
 import { PrismaModule } from './prisma/prisma.module';
 import {ConfigModule} from "@nestjs/config";
+import {CacheModule} from "@nestjs/cache-manager";
 
 @Module({
   imports: [
@@ -17,6 +18,10 @@ import {ConfigModule} from "@nestjs/config";
     PrismaModule,
     ConfigModule.forRoot({
       isGlobal: true,
+    }),
+    CacheModule.register({
+      isGlobal: true,
+      ttl: 3600000
     })
   ],
   controllers: [AppController],
