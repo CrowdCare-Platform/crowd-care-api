@@ -298,7 +298,7 @@ export class EncounterService {
       return cachedValue;
     } else {
       const stats = await this.calculateRealTimeStatsOfEvent(eventId, tenantId);
-      await this.cacheManager.set(`realTimeStatsOfEvent-${eventId}-${tenantId}`, stats, 120000);
+      await this.cacheManager.set(`realTimeStatsOfEvent-${eventId}-${tenantId}`, stats, 60000);
       return stats;
     }
   }
