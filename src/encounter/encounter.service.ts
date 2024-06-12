@@ -1,16 +1,19 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {Inject, Injectable, NotFoundException} from '@nestjs/common';
 import { CreatePatientEncounterDto } from './dto/createPatientEncounter.dto';
 import { PatientEncounter as PatientEncounterModel } from '.prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { EventService } from '../event/event.service';
 import { QuerySearchParamsDto } from './dto/querySearchParams.dto';
 import {RealTimeStatsOfEventDto} from "./dto/realTimeStatsOfEventDto";
+import {CACHE_MANAGER} from "@nestjs/cache-manager";
+import { Cache } from 'cache-manager';
 
 @Injectable()
 export class EncounterService {
   constructor(
     private prisma: PrismaService,
     private eventService: EventService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache
   ) {}
 
   async create(
@@ -204,10 +207,10 @@ export class EncounterService {
     });
   }
 
-  async getRealTimeStatsOfEvent(
+  private async calculateRealTimeStatsOfEvent(
       eventId: number,
-      tenantId: number,
-  ): Promise<RealTimeStatsOfEventDto[]> {
+        tenantId: number,
+    ): Promise<RealTimeStatsOfEventDto[]> {
     // Step 1: Get all aid posts of the event
     const aidPosts = await this.eventService.getAidPosts(eventId, tenantId);
     const aidPostIds = aidPosts.map((aidPost) => aidPost.id);
@@ -284,5 +287,19 @@ export class EncounterService {
         unknown: unknown ? unknown._count.id : 0,
       };
     });
+  }
+
+  async getRealTimeStatsOfEvent(
+      eventId: number,
+      tenantId: number,
+  ): Promise<RealTimeStatsOfEventDto[]> {
+    const cachedValue = await this.cacheManager.get<RealTimeStatsOfEventDto[]>(`realTimeStatsOfEvent-${eventId}-${tenantId}`);
+    if (cachedValue) {
+      return cachedValue;
+    } else {
+      const stats = await this.calculateRealTimeStatsOfEvent(eventId, tenantId);
+      await this.cacheManager.set(`realTimeStatsOfEvent-${eventId}-${tenantId}`, stats, 120000);
+      return stats;
+    }
   }
 }
