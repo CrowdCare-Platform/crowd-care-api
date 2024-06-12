@@ -1,41 +1,76 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import {Inject, Injectable, NotFoundException} from '@nestjs/common';
+import {Prisma, Tenant} from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import {CACHE_MANAGER} from "@nestjs/cache-manager";
+import { Cache } from 'cache-manager';
 
 @Injectable()
 export class TenantService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService, @Inject(CACHE_MANAGER) private cacheManager: Cache) {}
   async create(createTenantDto: Prisma.TenantCreateInput) {
-    return this.prisma.tenant.create({
+    const newTenant = await this.prisma.tenant.create({
       data: createTenantDto,
     });
+    await this.cacheManager.set(`tenant-url-${newTenant.url}`, newTenant, 3600000);
+    await this.cacheManager.set(`tenant-id-${newTenant.id}`, newTenant, 3600000);
+    return newTenant;
   }
 
   async findAll() {
-    return this.prisma.tenant.findMany();
+    const cachedValue = await this.cacheManager.get<Tenant[]>('allTenants');
+    if (cachedValue) {
+      return cachedValue;
+    } else {
+        const tenants = await this.prisma.tenant.findMany();
+        await this.cacheManager.set('allTenants', tenants, 3600000);
+        return tenants;
+    }
   }
 
   async findOne(url: string) {
-    const tenant = await this.prisma.tenant.findFirst({
-      where: { url },
-    });
-    if (!tenant) {
-      throw new NotFoundException('Tenant not found');
+    const cachedTenant = await this.cacheManager.get<Tenant>(`tenant-url-${url}`);
+    if (cachedTenant) {
+        return cachedTenant;
+    } else {
+        const tenant = await this.prisma.tenant.findFirst({
+            where: { url },
+        });
+        if (!tenant) {
+            throw new NotFoundException('Tenant not found');
+        }
+        await this.cacheManager.set(`tenant-url-${url}`, tenant, 3600000);
+        return tenant;
     }
-    return tenant;
+  }
+
+  async findOneOnId(id: number) {
+    const cachedTenant = await this.cacheManager.get<Tenant>(`tenant-id-${id}`);
+    if (cachedTenant) {
+        return cachedTenant;
+    } else {
+        const tenant = await this.prisma.tenant.findFirst({
+            where: { id },
+        });
+        if (!tenant) {
+            throw new NotFoundException('Tenant not found');
+        }
+        await this.cacheManager.set(`tenant-id-${id}`, tenant, 3600000);
+        return tenant;
+    }
   }
 
   async delete(id: number) {
-    await this.prisma.tenant.delete({
+    const tenant = await this.prisma.tenant.delete({
       where: { id },
     });
-    return null;
+    await this.cacheManager.reset();
   }
 
   async update(id: number, updateTenantDto: Prisma.TenantUpdateInput) {
-    return this.prisma.tenant.update({
+    await this.prisma.tenant.update({
       where: { id },
       data: updateTenantDto,
     });
+    await this.cacheManager.reset();
   }
 }

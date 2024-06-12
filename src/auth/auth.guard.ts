@@ -12,12 +12,13 @@ import axios from 'axios';
 import { createRemoteJWKSet, jwtVerify } from 'jose';
 import {Roles} from "./roles.decorator";
 import {Reflector} from "@nestjs/core";
+import {TenantService} from "../tenant/tenant.service";
 
 @Injectable()
 export class LogtoAuthGuard implements CanActivate {
     private discoveryCache: DiscoveryResponseData;
 
-    constructor(private readonly configService: ConfigService, private reflector: Reflector) {}
+    constructor(private readonly configService: ConfigService, private reflector: Reflector, private readonly tenantService: TenantService) {}
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const request = context.switchToHttp().getRequest() as Request;
@@ -28,6 +29,13 @@ export class LogtoAuthGuard implements CanActivate {
             return true;
         }
         const user = request['user'];
+        const tenantId = request.headers['tenant-id'];
+        if (tenantId) {
+            const tenant = await this.tenantService.findOneOnId(+tenantId);
+            if (!user.organizations.map(_ => _.description).includes(tenant.url)) {
+                throw new UnauthorizedException(`Tenant and user don't match!`);
+            }
+        }
         return this.matchRoles(roles, user.organizationRoles);
     }
 
@@ -83,7 +91,6 @@ export class LogtoAuthGuard implements CanActivate {
     }
 
     private matchRoles(roles: string[], userRoles: any[]): boolean {
-        console.log(roles, userRoles);
         return roles.some(role => userRoles.map(_ => _.roleName.toLowerCase()).includes(role.toLowerCase()));
     }
 }
