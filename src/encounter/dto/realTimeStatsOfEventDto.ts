@@ -5,4 +5,5 @@ export interface RealTimeStatsOfEventDto {
     GREEN: number;
     WHITE: number;
     unknown: number;
+    treatmentNotStarted: number;
 }

@@ -26,7 +26,7 @@ export class EventService {
       const events = await this.prisma.event.findMany({
         where: { tenantId },
       });
-      await this.cacheManager.set('`allEvents-tenant-${tenantId}', events);
+      await this.cacheManager.set(`allEvents-tenant-${tenantId}`, events);
       return events;
     }
   }

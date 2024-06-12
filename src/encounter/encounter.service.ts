@@ -222,6 +222,7 @@ export class EncounterService {
       greenEncountersPerAidPost,
       whiteEncountersPerAidPost,
       unknownEncountersPerAidPost,
+      treatmentNotStartedPerAidPost,
     ] = await Promise.all([
       this.prisma.patientEncounter.groupBy({
         by: ['aidPostId'],
@@ -268,6 +269,14 @@ export class EncounterService {
         },
         _count: { id: true },
       }),
+      this.prisma.patientEncounter.groupBy({
+        by: ['aidPostId'],
+        where: {
+          aidPostId: { in: aidPostIds },
+          timeStartTreatment: null,
+        },
+        _count: { id: true },
+      }),
     ]);
 
     // Step 3: Combine results
@@ -277,6 +286,7 @@ export class EncounterService {
       const green = greenEncountersPerAidPost.find((encounter) => encounter.aidPostId === aidPost.id);
       const white = whiteEncountersPerAidPost.find((encounter) => encounter.aidPostId === aidPost.id);
       const unknown = unknownEncountersPerAidPost.find((encounter) => encounter.aidPostId === aidPost.id);
+      const treatmentNotStarted = treatmentNotStartedPerAidPost.find((encounter) => encounter.aidPostId === aidPost.id);
 
       return {
         aidPostId: aidPost.id,
@@ -285,6 +295,7 @@ export class EncounterService {
         GREEN: green ? green._count.id : 0,
         WHITE: white ? white._count.id : 0,
         unknown: unknown ? unknown._count.id : 0,
+        treatmentNotStarted: treatmentNotStarted ? treatmentNotStarted._count.id : 0,
       };
     });
   }
