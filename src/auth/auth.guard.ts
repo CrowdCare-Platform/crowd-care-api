@@ -23,7 +23,6 @@ export class LogtoAuthGuard implements CanActivate {
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const request = context.switchToHttp().getRequest() as Request;
         await this.verifyAuthFromRequest(request);
-
         const roles = this.reflector.get(Roles, context.getHandler());
         if (!roles) {
             return true;
@@ -56,7 +55,6 @@ export class LogtoAuthGuard implements CanActivate {
                     audience: logToAud,
                 },
             );
-            // console.log("Payload", payload);
             request['user'] = payload.user;
         } catch (e) {
             throw new UnauthorizedException('JWT verification failed!');

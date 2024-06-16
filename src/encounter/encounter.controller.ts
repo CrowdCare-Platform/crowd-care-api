@@ -41,6 +41,45 @@ export class EncounterController {
     return this.encounterService.getRealTimeStatsOfEvent(+query.eventId, tenantId);
   }
 
+  @Get('/active/event/:eventId/aidPost/:aidPostId')
+  @Roles(['admin', 'coordinator', 'user'])
+  async getActiveRegistrationsForAidPost(
+      @Req() req,
+      @Param('eventId') eventId: number,
+      @Param('aidPostId') aidPostId: number,
+  ): Promise<PatientEncounterModel[]> {
+    const tenantId = +req.headers['tenant-id'];
+    if (!tenantId || isNaN(tenantId)) {
+      throw new BadRequestException('Tenant ID is invalid');
+    }
+    return this.encounterService.getActiveRegistrationsForAidPost(eventId, aidPostId, tenantId);
+  }
+
+  @Post('/startTreatment')
+  @Roles(['admin', 'coordinator', 'user'])
+  async startTreatment(
+    @Req() req,
+    @Query('eventId') eventId: string,
+    @Query('aidPostId') aidPostId: string,
+    @Query('encounterId') encounterId: string,
+  ) {
+    const tenantId = +req.headers['tenant-id'];
+    if (!tenantId || isNaN(tenantId)) {
+      throw new BadRequestException('Tenant ID is invalid');
+    }
+    if (!eventId || isNaN(+eventId)) {
+      throw new BadRequestException('Event ID is invalid');
+    }
+    if (!aidPostId || isNaN(+aidPostId)) {
+      throw new BadRequestException('AidPost ID is invalid');
+    }
+    if (!encounterId || isNaN(+encounterId)) {
+      throw new BadRequestException('Encounter ID is invalid');
+    }
+
+    return this.encounterService.startTreatment(tenantId, +eventId, +aidPostId, +encounterId);
+  }
+
   @Post()
   @Roles(['user'])
   async create(

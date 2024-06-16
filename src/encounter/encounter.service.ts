@@ -313,4 +313,35 @@ export class EncounterService {
       return stats;
     }
   }
+
+  async getActiveRegistrationsForAidPost(
+        eventId: number,
+        aidPostId: number,
+        tenantId: number,
+    ): Promise<PatientEncounterModel[]> {
+        await this.eventService.getAidPost(eventId, aidPostId, tenantId);
+        return this.prisma.patientEncounter.findMany({
+          where: {
+              aidPostId: aidPostId,
+              timeOut: null,
+          },
+        });
+    }
+
+    async startTreatment(
+        tenantId: number,
+        eventId: number,
+        aidPostId: number,
+        encounterId: number,
+    ) {
+        await this.eventService.getAidPost(eventId, aidPostId, tenantId);
+        return this.prisma.patientEncounter.update({
+          where: {
+              id: encounterId,
+          },
+          data: {
+              timeStartTreatment: new Date(),
+          },
+        });
+    }
 }
