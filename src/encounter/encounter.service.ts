@@ -7,6 +7,7 @@ import { QuerySearchParamsDto } from './dto/querySearchParams.dto';
 import {RealTimeStatsOfEventDto} from "./dto/realTimeStatsOfEventDto";
 import {CACHE_MANAGER} from "@nestjs/cache-manager";
 import { Cache } from 'cache-manager';
+import {CreateParameterSetDto} from "./dto/createParameterSet.dto";
 
 @Injectable()
 export class EncounterService {
@@ -344,4 +345,42 @@ export class EncounterService {
           },
         });
     }
+
+  async addParameters(
+      tenantId: number,
+      eventId: number,
+      aidPostId: number,
+      qrCode: string,
+      createParameterSetDto: CreateParameterSetDto,
+  ) {
+    await this.eventService.getAidPost(eventId, aidPostId, tenantId);
+    const encounter = await this.prisma.patientEncounter.findFirst({
+        where: {
+            qrCode: qrCode
+        },
+    });
+    console.log(encounter);
+
+    if (!encounter) {
+      throw new NotFoundException('Encounter not found');
+    }
+
+    console.log(createParameterSetDto);
+    return this.prisma.parameterSet.create({
+      data: {
+        WAPA: createParameterSetDto.WAPA,
+        heartRate: createParameterSetDto.heartRate,
+        respiratoryRate: createParameterSetDto.respiratoryRate,
+        saturation: createParameterSetDto.saturation,
+        temperature: createParameterSetDto.temperature,
+        bloodPressureSystolic: createParameterSetDto.bloodPressureSystolic,
+        bloodPressureDiastolic: createParameterSetDto.bloodPressureDiastolic,
+        patientEncounter: {
+          connect: {
+            id: encounter.id,
+          },
+        },
+      }
+    });
+  }
 }

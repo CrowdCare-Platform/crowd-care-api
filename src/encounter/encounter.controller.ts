@@ -18,12 +18,38 @@ import {RealTimeStatsOfEventDto} from "./dto/realTimeStatsOfEventDto";
 import {QueryStatsParamsDto} from "./dto/queryStatsParams.dto";
 import {LogtoAuthGuard} from "../auth/auth.guard";
 import {Roles} from "../auth/roles.decorator";
+import {CreateParameterSetDto} from "./dto/createParameterSet.dto";
 
 @Controller('encounter')
 @UseGuards(LogtoAuthGuard)
 export class EncounterController {
   constructor(private readonly encounterService: EncounterService) {}
 
+  @Post('/parameters')
+  @Roles(['admin', 'coordinator', 'user'])
+  async addParameters(
+      @Req() req,
+      @Query('eventId') eventId: string,
+      @Query('aidPostId') aidPostId: string,
+      @Query('qrCode') qrCode: string,
+      @Body() createParameterSetDto: CreateParameterSetDto,
+  ) {
+    const tenantId = +req.headers['tenant-id'];
+    if (!tenantId || isNaN(tenantId)) {
+      throw new BadRequestException('Tenant ID is invalid');
+    }
+    if (!eventId || isNaN(+eventId)) {
+      throw new BadRequestException('Event ID is invalid');
+    }
+    if (!aidPostId || isNaN(+aidPostId)) {
+      throw new BadRequestException('AidPost ID is invalid');
+    }
+    if (!qrCode) {
+      throw new BadRequestException('QrCode not found');
+    }
+
+    return this.encounterService.addParameters(tenantId, +eventId, +aidPostId, qrCode, createParameterSetDto);
+  }
   @Get('/stats')
   @Roles(['admin', 'coordinator'])
   async getRealTimeStatsOfEvent(

@@ -73,6 +73,20 @@ model PatientEncounter {
   aidPostId          Int
   comments           String?
   attachments        String[]
+  ParameterSet       ParameterSet[]
+}
+
+model ParameterSet {
+  id                     Int              @id @default(autoincrement())
+  WAPA                   WAPA?
+  heartRate              Int?
+  saturation             Int?
+  temperature            Float?
+  respiratoryRate        Int?
+  bloodPressureSystolic  Int?
+  bloodPressureDiastolic Int?
+  patientEncounter       PatientEncounter @relation(fields: [patientEncounterId], references: [id])
+  patientEncounterId     Int
 }
 
 model Hospital {
@@ -94,6 +108,13 @@ model Ambulance {
   eventId           Int
   encountersWithIn  PatientEncounter[] @relation(name: "AmbulanceIn")
   encountersWithOut PatientEncounter[] @relation(name: "AmbulanceOut")
+}
+
+enum WAPA {
+  WAKKER
+  AANSPREEKBAAR
+  PIJNGEVOELIG
+  AREACTIEF
 }
 
 enum MethodIn {
