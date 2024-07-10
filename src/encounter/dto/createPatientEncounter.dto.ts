@@ -51,6 +51,10 @@ export class CreatePatientEncounterDto {
   @IsEnum(TriageCategory)
   triage?: TriageCategory;
 
+  @IsDateString()
+  @IsOptional()
+  timeTriage?: string;
+
   @IsOptional()
   @IsEnum(ChiefComplaint)
   chiefComplaint?: ChiefComplaint;

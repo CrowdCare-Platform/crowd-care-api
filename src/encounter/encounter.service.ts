@@ -8,6 +8,8 @@ import {RealTimeStatsOfEventDto} from "./dto/realTimeStatsOfEventDto";
 import {CACHE_MANAGER} from "@nestjs/cache-manager";
 import { Cache } from 'cache-manager';
 import {CreateParameterSetDto} from "./dto/createParameterSet.dto";
+import {AddTriageDto} from "./dto/addTriage.dto";
+import {RegulationPayloadDto} from "./dto/regulationPayload.dto";
 
 @Injectable()
 export class EncounterService {
@@ -51,6 +53,7 @@ export class EncounterService {
         triage: createEncounterDto.triage
           ? createEncounterDto.triage
           : undefined,
+        timeTriage: createEncounterDto.timeTriage,
         chiefComplaint: createEncounterDto.chiefComplaint
           ? createEncounterDto.chiefComplaint
           : undefined,
@@ -127,6 +130,35 @@ export class EncounterService {
     return encounter;
   }
 
+  async findActiveRfid(
+      eventId: number,
+      aidPostId: number,
+      tenantId: number,
+      rfid?: string,
+      qrCode?: string,
+  ): Promise<PatientEncounterModel> {
+    await this.eventService.getAidPost(eventId, aidPostId, tenantId);
+
+    if (rfid) {
+      const encounter = await this.prisma.patientEncounter.findFirst({
+        where: {
+          rfid: rfid,
+          timeOut: null,
+        },
+      });
+      return encounter;
+    } else if (qrCode) {
+      const encounter = await this.prisma.patientEncounter.findFirst({
+        where: {
+          qrCode: qrCode,
+          timeOut: null,
+        },
+      });
+      return encounter;
+    }
+    return null;
+  }
+
   async update(
     eventId: number,
     aidPostId: number,
@@ -164,6 +196,7 @@ export class EncounterService {
         triage: createEncounterDto.triage
           ? createEncounterDto.triage
           : undefined,
+        timeTriage: createEncounterDto.timeTriage ? new Date(createEncounterDto.timeTriage) : undefined,
         chiefComplaint: createEncounterDto.chiefComplaint
           ? createEncounterDto.chiefComplaint
           : undefined,
@@ -326,61 +359,191 @@ export class EncounterService {
               aidPostId: aidPostId,
               timeOut: null,
           },
+          orderBy: { timeIn: 'asc' },
         });
+    }
+
+    async getAllEncountersForRfid(
+        rfid: string,
+        eventId: number,
+        tenantId: number,
+    ): Promise<PatientEncounterModel[]> {
+      const aidPostsOfEvent = await this.eventService.getAidPosts(eventId, tenantId);
+      return this.prisma.patientEncounter.findMany({
+        where: {
+          rfid: rfid,
+          aidPostId: {
+            in: aidPostsOfEvent.map((aidPost) => aidPost.id),
+          }
+        },
+      });
     }
 
     async startTreatment(
         tenantId: number,
         eventId: number,
         aidPostId: number,
-        encounterId: number,
+        encounterId?: string,
+        rfid?: string,
     ) {
         await this.eventService.getAidPost(eventId, aidPostId, tenantId);
-        return this.prisma.patientEncounter.update({
-          where: {
-              id: encounterId,
-          },
-          data: {
+        if (encounterId) {
+          return this.prisma.patientEncounter.update({
+            where: {
+              id: +encounterId,
+            },
+            data: {
               timeStartTreatment: new Date(),
-          },
-        });
+            },
+          });
+        } else {
+          return this.prisma.patientEncounter.updateMany({
+            where: {
+              rfid,
+              timeStartTreatment: null,
+            },
+            data: {
+              timeStartTreatment: new Date(),
+            },
+          });
+        }
     }
 
   async addParameters(
       tenantId: number,
       eventId: number,
       aidPostId: number,
-      qrCode: string,
+      code: string,
       createParameterSetDto: CreateParameterSetDto,
   ) {
     await this.eventService.getAidPost(eventId, aidPostId, tenantId);
-    const encounter = await this.prisma.patientEncounter.findFirst({
+    const encounterBasedOnRfid = await this.prisma.patientEncounter.findFirst({
+      where: {
+        rfid: code
+      },
+    });
+
+    if (encounterBasedOnRfid) {
+      return this.prisma.parameterSet.create({
+        data: {
+          WAPA: createParameterSetDto.WAPA,
+          heartRate: createParameterSetDto.heartRate,
+          respiratoryRate: createParameterSetDto.respiratoryRate,
+          saturation: createParameterSetDto.saturation,
+          temperature: createParameterSetDto.temperature,
+          bloodPressureSystolic: createParameterSetDto.bloodPressureSystolic,
+          bloodPressureDiastolic: createParameterSetDto.bloodPressureDiastolic,
+          patientEncounter: {
+            connect: {
+              id: encounterBasedOnRfid.id,
+            },
+          },
+        }
+      });
+    }
+    const encounterBasedOnQrCode = await this.prisma.patientEncounter.findFirst({
         where: {
-            qrCode: qrCode
+            qrCode: code
         },
     });
-    console.log(encounter);
 
-    if (!encounter) {
+    if (encounterBasedOnQrCode) {
+      return this.prisma.parameterSet.create({
+        data: {
+          WAPA: createParameterSetDto.WAPA,
+          heartRate: createParameterSetDto.heartRate,
+          respiratoryRate: createParameterSetDto.respiratoryRate,
+          saturation: createParameterSetDto.saturation,
+          temperature: createParameterSetDto.temperature,
+          bloodPressureSystolic: createParameterSetDto.bloodPressureSystolic,
+          bloodPressureDiastolic: createParameterSetDto.bloodPressureDiastolic,
+          patientEncounter: {
+            connect: {
+              id: encounterBasedOnQrCode.id,
+            },
+          },
+        }
+      });
+    }
+
+    if (!encounterBasedOnQrCode && !encounterBasedOnRfid) {
+      throw new NotFoundException('Encounter not found');
+    }
+  }
+
+  async addTriage(
+      tenantId: number,
+      eventId: number,
+      aidPostId: number,
+      rfid: string,
+      triageBody: AddTriageDto,
+  ) {
+    await this.eventService.getAidPost(eventId, aidPostId, tenantId);
+    return this.prisma.patientEncounter.updateMany({
+      where: {
+        rfid: rfid,
+        triage: null,
+      },
+      data:{
+        triage: triageBody.triageCategory,
+        chiefComplaint: triageBody.chiefComplaint,
+        timeTriage: new Date(triageBody.timeTriage),
+        timeStartTreatment: triageBody.timeStartTreatment ? new Date(triageBody.timeStartTreatment) : undefined,
+      }
+    });
+  }
+
+  async regulation(
+      tenantId: number,
+      eventId: number,
+      aidPostId: number,
+      code: string,
+      regulationPayload: RegulationPayloadDto,
+  ) {
+    await this.eventService.getAidPost(eventId, aidPostId, tenantId);
+    const encounterBasedOnRfid = await this.prisma.patientEncounter.findFirst({
+      where: {
+        rfid: code,
+        timeOut: null,
+      },
+    });
+
+    if (encounterBasedOnRfid) {
+        return this.prisma.patientEncounter.update({
+            where: {
+            id: encounterBasedOnRfid.id,
+            },
+            data: {
+              methodOut: regulationPayload.methodOut,
+              timeOut: new Date(regulationPayload.timeOut),
+              ambulanceOutId: regulationPayload.ambulanceOutId ? regulationPayload.ambulanceOutId : undefined,
+            }
+        });
+    }
+
+    const encounterBasedOnQrCode = await this.prisma.patientEncounter.findFirst({
+      where: {
+        qrCode: code,
+        timeOut: null,
+      },
+    });
+
+    if (encounterBasedOnQrCode) {
+      return this.prisma.patientEncounter.update({
+        where: {
+          id: encounterBasedOnQrCode.id,
+        },
+        data: {
+          methodOut: regulationPayload.methodOut,
+          timeOut: new Date(regulationPayload.timeOut),
+          ambulanceOutId: regulationPayload.ambulanceOutId ? regulationPayload.ambulanceOutId : undefined,
+        }
+      });
+    }
+
+    if (!encounterBasedOnQrCode && !encounterBasedOnRfid) {
       throw new NotFoundException('Encounter not found');
     }
 
-    console.log(createParameterSetDto);
-    return this.prisma.parameterSet.create({
-      data: {
-        WAPA: createParameterSetDto.WAPA,
-        heartRate: createParameterSetDto.heartRate,
-        respiratoryRate: createParameterSetDto.respiratoryRate,
-        saturation: createParameterSetDto.saturation,
-        temperature: createParameterSetDto.temperature,
-        bloodPressureSystolic: createParameterSetDto.bloodPressureSystolic,
-        bloodPressureDiastolic: createParameterSetDto.bloodPressureDiastolic,
-        patientEncounter: {
-          connect: {
-            id: encounter.id,
-          },
-        },
-      }
-    });
   }
 }

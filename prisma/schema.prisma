@@ -50,7 +50,7 @@ model AidPost {
 
 model PatientEncounter {
   id                 Int             @id @default(autoincrement())
-  qrCode             String?
+  qrCode             String?         @unique
   rfid               String
   timeIn             DateTime
   methodIn           MethodIn
@@ -60,6 +60,7 @@ model PatientEncounter {
   age                Int?
   patientType        PatientType?
   triage             TriageCategory?
+  timeTriage         DateTime?
   chiefComplaint     ChiefComplaint?
   timeStartTreatment DateTime?
   timeOut            DateTime?

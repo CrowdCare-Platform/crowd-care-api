@@ -13,9 +13,13 @@ const load = async () => {
                     from: "2024-08-15T00:00:00.000Z",
                     to: "2024-08-18T00:00:00.000Z",
                 });
+                const timeTriage = faker.date.between({
+                    from: addMinutes(timeIn, 2),
+                    to: addMinutes(timeIn, 10),
+                });
                 const timeStartTreatment = faker.date.between({
-                    from: addMinutes(timeIn, 0),
-                    to: addMinutes(timeIn, 20),
+                    from: addMinutes(timeTriage, 0),
+                    to: addMinutes(timeTriage, 20),
                 });
                 const timeOut = faker.date.between({
                     from: addMinutes(timeStartTreatment, 5),
@@ -44,6 +48,7 @@ const load = async () => {
                             "GREEN",
                             "WHITE",
                         ]),
+                        timeTriage,
                         chiefComplaint: faker.helpers.arrayElement([
                             "ADEMHALING",
                             "HYPERVENTILATIE",
