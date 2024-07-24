@@ -1,4 +1,13 @@
 import {Inject, Injectable, NotFoundException} from '@nestjs/common';
+import {
+  S3Client,
+  PutObjectCommand,
+  CreateBucketCommand,
+  DeleteObjectCommand,
+  DeleteBucketCommand,
+  paginateListObjectsV2,
+  GetObjectCommand,
+} from "@aws-sdk/client-s3";
 import { CreatePatientEncounterDto } from './dto/createPatientEncounter.dto';
 import { PatientEncounter as PatientEncounterModel } from '.prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
@@ -19,6 +28,14 @@ export class EncounterService {
     @Inject(CACHE_MANAGER) private cacheManager: Cache
   ) {}
 
+  private s3 = new S3Client({
+    endpoint: process.env.S3_ENDPOINT,
+    region: process.env.S3_REGION,
+    credentials: {
+      accessKeyId: process.env.S3_ACCESS_KEY_ID || "",
+      secretAccessKey: process.env.S3_SECRET_ACCESS_KEY || ""
+    }
+  });
   async create(
     eventId: number,
     aidPostId: number,
@@ -545,5 +562,43 @@ export class EncounterService {
       throw new NotFoundException('Encounter not found');
     }
 
+  }
+
+  async uploadImage(
+    tenantId: number,
+    eventId: number,
+    aidPostId: number,
+    rfid: string,
+    file: any,
+  ) {
+    await this.eventService.getAidPost(eventId, aidPostId, tenantId);
+    const encounter = await this.prisma.patientEncounter.findFirst({
+        where: {
+            rfid: rfid,
+            timeOut: null,
+        },
+    });
+    const fileExtension = file.originalname.split('.').pop();
+    const key = `${tenantId}-${eventId}-${aidPostId}-${encounter.qrCode}-${new Date().getTime()}.${fileExtension}`;
+    const temp = await this.s3.send(new PutObjectCommand({
+      Bucket: process.env.S3_BUCKET_PATIENT_ENCOUNTER_PHOTOS || "",
+      Key: key,
+      Body: file.buffer,
+      ContentType: file.mimetype,
+    }));
+
+    if (temp.$metadata.httpStatusCode !== 200) {
+        throw new Error('Failed to upload image');
+    }
+    return this.prisma.patientEncounter.update({
+      where: {
+        id: encounter.id,
+      },
+      data: {
+        attachments: {
+          push: key,
+        },
+      },
+    });
   }
 }

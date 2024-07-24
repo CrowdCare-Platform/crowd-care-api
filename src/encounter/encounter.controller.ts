@@ -8,7 +8,7 @@ import {
   Post,
   Put,
   Query,
-  Req, UseGuards,
+  Req, UploadedFile, UseGuards, UseInterceptors,
 } from '@nestjs/common';
 import { PatientEncounter as PatientEncounterModel } from '.prisma/client';
 import { EncounterService } from './encounter.service';
@@ -21,12 +21,38 @@ import {Roles} from "../auth/roles.decorator";
 import {CreateParameterSetDto} from "./dto/createParameterSet.dto";
 import {AddTriageDto} from "./dto/addTriage.dto";
 import {RegulationPayloadDto} from "./dto/regulationPayload.dto";
+import {FileInterceptor} from "@nestjs/platform-express";
 
 @Controller('encounter')
 @UseGuards(LogtoAuthGuard)
 export class EncounterController {
   constructor(private readonly encounterService: EncounterService) {}
 
+  @Post('/uploadImage')
+  @Roles(['admin', 'coordinator', 'user'])
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadImage(
+      @Req() req,
+      @Query('eventId') eventId: string,
+      @Query('aidPostId') aidPostId: string,
+      @Query('rfid') rfid: string,
+      @UploadedFile() file
+  ) {
+    const tenantId = +req.headers['tenant-id'];
+    if (!tenantId || isNaN(tenantId)) {
+      throw new BadRequestException('Tenant ID is invalid');
+    }
+    if (!eventId || isNaN(+eventId)) {
+      throw new BadRequestException('Event ID is invalid');
+    }
+    if (!aidPostId || isNaN(+aidPostId)) {
+      throw new BadRequestException('AidPost ID is invalid');
+    }
+    if (!rfid) {
+      throw new BadRequestException('Rfid not found');
+    }
+    return this.encounterService.uploadImage(tenantId, +eventId, +aidPostId, rfid, file);
+  }
   @Post('/parameters')
   @Roles(['admin', 'coordinator', 'user'])
   async addParameters(
