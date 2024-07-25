@@ -534,6 +534,7 @@ export class EncounterService {
               methodOut: regulationPayload.methodOut,
               timeOut: new Date(regulationPayload.timeOut),
               ambulanceOutId: regulationPayload.ambulanceOutId ? regulationPayload.ambulanceOutId : undefined,
+              hospitalOutId: regulationPayload.hospitalOutId ? regulationPayload.hospitalOutId : undefined,
             }
         });
     }
@@ -554,6 +555,7 @@ export class EncounterService {
           methodOut: regulationPayload.methodOut,
           timeOut: new Date(regulationPayload.timeOut),
           ambulanceOutId: regulationPayload.ambulanceOutId ? regulationPayload.ambulanceOutId : undefined,
+          hospitalOutId: regulationPayload.hospitalOutId ? regulationPayload.hospitalOutId : undefined,
         }
       });
     }

@@ -14,6 +14,10 @@ export class RegulationPayloadDto {
   @IsOptional()
   ambulanceOutId?: number
 
+  @IsNumber()
+  @IsOptional()
+  hospitalOutId?: number
+
   @IsDateString()
   timeOut: string;
 }
