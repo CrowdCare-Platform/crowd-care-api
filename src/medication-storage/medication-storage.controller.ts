@@ -106,7 +106,6 @@ export class MedicationStorageController {
         @Query('eventId') eventId: string,
         @Query('aidPostId') aidPostId: string,
     ) {
-        console.log("TEST");
         const tenantId = +req.headers['tenant-id'];
         if (!tenantId || isNaN(tenantId)) {
             throw new BadRequestException('Tenant ID is invalid');
