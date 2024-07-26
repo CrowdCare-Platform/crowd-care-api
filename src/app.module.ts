@@ -8,6 +8,7 @@ import { TenantModule } from './tenant/tenant.module';
 import { PrismaModule } from './prisma/prisma.module';
 import {ConfigModule} from "@nestjs/config";
 import {CacheModule} from "@nestjs/cache-manager";
+import { MedicationStorageModule } from './medication-storage/medication-storage.module';
 
 @Module({
   imports: [
@@ -22,7 +23,8 @@ import {CacheModule} from "@nestjs/cache-manager";
     CacheModule.register({
       isGlobal: true,
       ttl: 3600000
-    })
+    }),
+    MedicationStorageModule
   ],
   controllers: [AppController],
   providers: [AppService],

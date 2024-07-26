@@ -2,11 +2,6 @@ import {Inject, Injectable, NotFoundException} from '@nestjs/common';
 import {
   S3Client,
   PutObjectCommand,
-  CreateBucketCommand,
-  DeleteObjectCommand,
-  DeleteBucketCommand,
-  paginateListObjectsV2,
-  GetObjectCommand,
 } from "@aws-sdk/client-s3";
 import { CreatePatientEncounterDto } from './dto/createPatientEncounter.dto';
 import { PatientEncounter as PatientEncounterModel } from '.prisma/client';

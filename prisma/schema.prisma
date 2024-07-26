@@ -41,11 +41,12 @@ model Event {
 }
 
 model AidPost {
-  id                Int                @id @default(autoincrement())
-  name              String             @db.VarChar(255)
+  id                Int                 @id @default(autoincrement())
+  name              String              @db.VarChar(255)
   patientEncounters PatientEncounter[]
-  event             Event              @relation(fields: [eventId], references: [id])
+  event             Event               @relation(fields: [eventId], references: [id])
   eventId           Int
+  MedicationStorage MedicationStorage[]
 }
 
 model PatientEncounter {
@@ -75,6 +76,8 @@ model PatientEncounter {
   comments           String?
   attachments        String[]
   ParameterSet       ParameterSet[]
+
+  @@index(fields: [rfid, qrCode])
 }
 
 model ParameterSet {
@@ -109,6 +112,20 @@ model Ambulance {
   eventId           Int
   encountersWithIn  PatientEncounter[] @relation(name: "AmbulanceIn")
   encountersWithOut PatientEncounter[] @relation(name: "AmbulanceOut")
+}
+
+model MedicationStorage {
+  id          Int      @id @default(autoincrement())
+  rfid        String
+  stickerCode String   @unique
+  aidPost     AidPost  @relation(fields: [aidPostId], references: [id])
+  aidPostId   Int
+  description String
+  active      Boolean  @default(true)
+  attachment  String
+  createdAt   DateTime @default(now())
+
+  @@index(fields: [stickerCode, rfid])
 }
 
 enum WAPA {
