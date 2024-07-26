@@ -79,7 +79,6 @@ export class MedicationStorageController {
     getMedicationStorageByRfid(
         @Req() req,
         @Query('eventId') eventId: string,
-        @Query('aidPostId') aidPostId: string,
         @Param('rfid') rfid: string,
     ) {
         const tenantId = +req.headers['tenant-id'];
@@ -89,13 +88,10 @@ export class MedicationStorageController {
         if (!eventId || isNaN(+eventId)) {
             throw new BadRequestException('Event ID is invalid');
         }
-        if (!aidPostId || isNaN(+aidPostId)) {
-            throw new BadRequestException('AidPost ID is invalid');
-        }
         if (!rfid) {
             throw new BadRequestException('Rfid not found');
         }
-        return this.medicationStorageService.getMedicationStorageByRfid(tenantId, +eventId, +aidPostId, rfid);
+        return this.medicationStorageService.getMedicationStorageByRfid(tenantId, +eventId, rfid);
     }
 
     @Delete('/:id')

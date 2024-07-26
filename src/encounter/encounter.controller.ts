@@ -53,6 +53,33 @@ export class EncounterController {
     }
     return this.encounterService.uploadImage(tenantId, +eventId, +aidPostId, rfid, file);
   }
+
+  @Get('/parameters')
+  @Roles(['admin', 'coordinator', 'user'])
+  async getParameters(
+      @Req() req,
+      @Query('eventId') eventId: string,
+      @Query('aidPostId') aidPostId: string,
+      @Query('code') code: string,
+  ) {
+    const tenantId = +req.headers['tenant-id'];
+    if (!tenantId || isNaN(tenantId)) {
+      throw new BadRequestException('Tenant ID is invalid');
+    }
+    if (!eventId || isNaN(+eventId)) {
+      throw new BadRequestException('Event ID is invalid');
+    }
+    if (!aidPostId || isNaN(+aidPostId)) {
+      throw new BadRequestException('AidPost ID is invalid');
+    }
+    if (!code) {
+      throw new BadRequestException('QrCode or rfid not found');
+    }
+
+    return this.encounterService.getParameters(tenantId, +eventId, +aidPostId, code);
+  }
+
+
   @Post('/parameters')
   @Roles(['admin', 'coordinator', 'user'])
   async addParameters(

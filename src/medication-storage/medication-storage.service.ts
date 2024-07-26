@@ -94,13 +94,9 @@ export class MedicationStorageService {
     async getMedicationStorageByRfid(
         tenantId: number,
         eventId: number,
-        aidPostId: number,
         rfid: string
     ) {
         const aidPostsOfEvent = await this.eventService.getAidPosts(eventId, tenantId).then(res => res.map(a => a.id));
-        if (!aidPostsOfEvent.includes(aidPostId)) {
-            throw new Error('No access to this aid post');
-        }
         let res = await this.prisma.medicationStorage.findMany({
             where: {
                 rfid,

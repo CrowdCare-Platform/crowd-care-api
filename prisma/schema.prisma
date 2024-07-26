@@ -91,6 +91,9 @@ model ParameterSet {
   bloodPressureDiastolic Int?
   patientEncounter       PatientEncounter @relation(fields: [patientEncounterId], references: [id])
   patientEncounterId     Int
+  createdAt              DateTime         @default(now())
+
+  @@index(fields: [patientEncounterId])
 }
 
 model Hospital {

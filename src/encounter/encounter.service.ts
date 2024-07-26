@@ -421,6 +421,47 @@ export class EncounterService {
         }
     }
 
+  async getParameters(
+      tenantId: number,
+      eventId: number,
+      aidPostId: number,
+      code: string,
+  ) {
+    await this.eventService.getAidPost(eventId, aidPostId, tenantId);
+    const encounterBasedOnRfid = await this.prisma.patientEncounter.findFirst({
+      where: {
+        rfid: code,
+        aidPostId: aidPostId,
+      },
+    });
+
+    if (encounterBasedOnRfid) {
+      return this.prisma.parameterSet.findMany({
+        where: {
+          patientEncounterId: encounterBasedOnRfid.id,
+        },
+      });
+    }
+    const encounterBasedOnQrCode = await this.prisma.patientEncounter.findFirst({
+      where: {
+        qrCode: code,
+        aidPostId: aidPostId,
+      },
+    });
+
+    if (encounterBasedOnQrCode) {
+      return this.prisma.parameterSet.findMany({
+        where: {
+          patientEncounterId: encounterBasedOnQrCode.id,
+        },
+      });
+    }
+
+    if (!encounterBasedOnQrCode && !encounterBasedOnRfid) {
+      throw new NotFoundException('Encounter not found');
+    }
+  }
+
   async addParameters(
       tenantId: number,
       eventId: number,
