@@ -131,6 +131,16 @@ model MedicationStorage {
   @@index(fields: [stickerCode, rfid])
 }
 
+model Feedback {
+  id          Int      @id @default(autoincrement())
+  name        String?
+  urgent      Boolean
+  description String
+  new         Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  extraInfo   String
+}
+
 enum WAPA {
   WAKKER
   AANSPREEKBAAR

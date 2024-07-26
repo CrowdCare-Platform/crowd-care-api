@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "Feedback" ALTER COLUMN "name" DROP NOT NULL,
+ALTER COLUMN "new" SET DEFAULT true;

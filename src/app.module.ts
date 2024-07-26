@@ -9,6 +9,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import {ConfigModule} from "@nestjs/config";
 import {CacheModule} from "@nestjs/cache-manager";
 import { MedicationStorageModule } from './medication-storage/medication-storage.module';
+import { FeedbackModule } from './feedback/feedback.module';
 
 @Module({
   imports: [
@@ -24,7 +25,8 @@ import { MedicationStorageModule } from './medication-storage/medication-storage
       isGlobal: true,
       ttl: 3600000
     }),
-    MedicationStorageModule
+    MedicationStorageModule,
+    FeedbackModule
   ],
   controllers: [AppController],
   providers: [AppService],
