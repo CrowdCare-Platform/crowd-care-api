@@ -24,7 +24,7 @@ export class EventController {
   constructor(private readonly eventService: EventService) {}
 
   @Post()
-  @Roles(['admin'])
+  @Roles(['ADMIN'])
   async create(
     @Req() req,
     @Body() createEventDto: CreateEventDto,
@@ -40,7 +40,7 @@ export class EventController {
   }
 
   @Get()
-  @Roles(['admin', 'coordinator', 'user'])
+  @Roles(['ADMIN', 'APP', 'CP-MED', 'CP-EVENT', 'EPD'])
   async findAll(@Req() req): Promise<EventModel[]> {
     const tenantId = +req.headers['tenant-id'];
     if (!tenantId || isNaN(tenantId)) {
@@ -50,7 +50,7 @@ export class EventController {
   }
 
   @Get('/:id')
-  @Roles(['admin', 'coordinator', 'user'])
+  @Roles(['ADMIN', 'APP', 'CP-MED', 'CP-EVENT', 'EPD'])
   async findOne(@Req() req, @Param('id') id: number): Promise<EventModel> {
     const tenantId = +req.headers['tenant-id'];
     if (!tenantId || isNaN(tenantId)) {
@@ -60,7 +60,7 @@ export class EventController {
   }
 
   @Delete('/:id')
-  @Roles(['admin'])
+  @Roles(['ADMIN'])
   async delete(@Req() req, @Param('id') id: number): Promise<void> {
     const tenantId = +req.headers['tenant-id'];
     if (!tenantId || isNaN(tenantId)) {
@@ -70,7 +70,7 @@ export class EventController {
   }
 
   @Put('/:id')
-  @Roles(['admin'])
+  @Roles(['ADMIN'])
   async update(
     @Req() req,
     @Param('id') id: number,
@@ -84,7 +84,7 @@ export class EventController {
   }
 
   @Get('/:id/ambulance')
-  @Roles(['admin', 'coordinator', 'user'])
+  @Roles(['ADMIN', 'APP', 'CP-MED', 'CP-EVENT', 'EPD'])
   async getAmbulances(@Req() req, @Param('id') id: number) {
     const tenantId = +req.headers['tenant-id'];
     if (!tenantId || isNaN(tenantId)) {
@@ -94,7 +94,7 @@ export class EventController {
   }
 
   @Get('/:id/ambulance/:ambulanceId')
-  @Roles(['admin', 'coordinator', 'user'])
+  @Roles(['ADMIN', 'APP', 'CP-MED', 'CP-EVENT', 'EPD'])
   async getAmbulance(
     @Req() req,
     @Param('id') id: number,
@@ -108,7 +108,7 @@ export class EventController {
   }
 
   @Post('/:id/ambulance')
-  @Roles(['admin'])
+  @Roles(['ADMIN'])
   async createAmbulance(
     @Req() req,
     @Param('id') id: number,
@@ -122,7 +122,7 @@ export class EventController {
   }
 
   @Put('/:id/ambulance/:ambulanceId')
-  @Roles(['admin'])
+  @Roles(['ADMIN'])
   async updateAmbulance(
     @Req() req,
     @Param('id') id: number,
@@ -142,7 +142,7 @@ export class EventController {
   }
 
   @Delete('/:id/ambulance/:ambulanceId')
-  @Roles(['admin'])
+  @Roles(['ADMIN'])
   async deleteAmbulance(
     @Req() req,
     @Param('id') id: number,
@@ -156,7 +156,7 @@ export class EventController {
   }
 
   @Get('/:id/hospital')
-  @Roles(['admin', 'coordinator', 'user'])
+  @Roles(['ADMIN', 'APP', 'CP-MED', 'CP-EVENT', 'EPD'])
   async getHospitals(@Req() req, @Param('id') id: number) {
     const tenantId = +req.headers['tenant-id'];
     if (!tenantId || isNaN(tenantId)) {
@@ -166,7 +166,7 @@ export class EventController {
   }
 
   @Get('/:id/hospital/:hospitalId')
-  @Roles(['admin', 'coordinator', 'user'])
+  @Roles(['ADMIN', 'APP', 'CP-MED', 'CP-EVENT', 'EPD'])
   async getHospital(
     @Req() req,
     @Param('id') id: number,
@@ -180,7 +180,7 @@ export class EventController {
   }
 
   @Post('/:id/hospital')
-  @Roles(['admin'])
+  @Roles(['ADMIN'])
   async createHospital(
     @Req() req,
     @Param('id') id: number,
@@ -194,7 +194,7 @@ export class EventController {
   }
 
   @Put('/:id/hospital/:hospitalId')
-  @Roles(['admin'])
+  @Roles(['ADMIN'])
   async updateHospital(
     @Req() req,
     @Param('id') id: number,
@@ -214,7 +214,7 @@ export class EventController {
   }
 
   @Delete('/:id/hospital/:hospitalId')
-  @Roles(['admin'])
+  @Roles(['ADMIN'])
   async deleteHospital(
     @Req() req,
     @Param('id') id: number,
@@ -228,7 +228,7 @@ export class EventController {
   }
 
   @Get('/:id/aidPost')
-  @Roles(['admin', 'coordinator', 'user'])
+  @Roles(['ADMIN', 'APP', 'CP-MED', 'CP-EVENT', 'EPD'])
   async getAidPosts(@Req() req, @Param('id') id: number) {
     const tenantId = +req.headers['tenant-id'];
     if (!tenantId || isNaN(tenantId)) {
@@ -238,7 +238,7 @@ export class EventController {
   }
 
   @Get('/:id/aidPost/:aidPostId')
-  @Roles(['admin', 'coordinator', 'user'])
+  @Roles(['ADMIN', 'APP', 'CP-MED', 'CP-EVENT', 'EPD'])
   async getAidPost (
       @Req() req,
       @Param('id') id: number,
@@ -252,7 +252,7 @@ export class EventController {
   }
 
   @Post('/:id/aidPost')
-  @Roles(['admin'])
+  @Roles(['ADMIN'])
   async createAidPost(
       @Req() req,
       @Param('id') id: number,
@@ -266,7 +266,7 @@ export class EventController {
   }
 
   @Put('/:id/aidPost/:aidPostId')
-  @Roles(['admin'])
+  @Roles(['ADMIN'])
   async updateAidPost(
       @Req() req,
       @Param('id') id: number,
@@ -286,7 +286,7 @@ export class EventController {
   }
 
   @Delete('/:id/aidPost/:aidPostId')
-  @Roles(['admin'])
+  @Roles(['ADMIN'])
   async deleteAidPost(
       @Req() req,
       @Param('id') id: number,

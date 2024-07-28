@@ -29,7 +29,7 @@ export class EncounterController {
   constructor(private readonly encounterService: EncounterService) {}
 
   @Post('/uploadImage')
-  @Roles(['admin', 'coordinator', 'user'])
+  @Roles(['APP'])
   @UseInterceptors(FileInterceptor('file'))
   async uploadImage(
       @Req() req,
@@ -55,7 +55,7 @@ export class EncounterController {
   }
 
   @Get('/parameters')
-  @Roles(['admin', 'coordinator', 'user'])
+  @Roles(['APP', 'EPD'])
   async getParameters(
       @Req() req,
       @Query('eventId') eventId: string,
@@ -81,7 +81,7 @@ export class EncounterController {
 
 
   @Post('/parameters')
-  @Roles(['admin', 'coordinator', 'user'])
+  @Roles(['APP'])
   async addParameters(
       @Req() req,
       @Query('eventId') eventId: string,
@@ -107,7 +107,7 @@ export class EncounterController {
   }
 
   @Post('/regulation')
-  @Roles(['admin', 'coordinator', 'user'])
+  @Roles(['APP'])
   async regulation(
       @Req() req,
       @Query('eventId') eventId: string,
@@ -133,7 +133,7 @@ export class EncounterController {
   }
 
   @Get('/stats')
-  @Roles(['admin', 'coordinator'])
+  @Roles(['CP-EVENT', 'CP-MED'])
   async getRealTimeStatsOfEvent(
       @Req() req,
       @Query() query: QueryStatsParamsDto,
@@ -150,7 +150,7 @@ export class EncounterController {
   }
 
   @Get('/active/event/:eventId/aidPost/:aidPostId')
-  @Roles(['admin', 'coordinator', 'user'])
+  @Roles(['APP', 'EPD', 'CP-MED', 'CP-EVENT'])
   async getActiveRegistrationsForAidPost(
       @Req() req,
       @Param('eventId') eventId: number,
@@ -164,7 +164,7 @@ export class EncounterController {
   }
 
   @Get('/event/:eventId/rfid/:rfid')
-  @Roles(['admin', 'coordinator', 'user'])
+  @Roles(['APP', 'EPD', 'CP-MED', 'CP-EVENT'])
   async getAllEncountersForRfid(
       @Req() req,
       @Param('eventId') eventId: number,
@@ -178,7 +178,7 @@ export class EncounterController {
   }
 
   @Post('/startTreatment')
-  @Roles(['admin', 'coordinator', 'user'])
+  @Roles(['APP'])
   async startTreatment(
     @Req() req,
     @Query('eventId') eventId: string,
@@ -204,7 +204,7 @@ export class EncounterController {
   }
 
   @Post('/triage')
-  @Roles(['admin', 'coordinator', 'user'])
+  @Roles(['APP'])
   async addTriage(
       @Req() req,
       @Query('eventId') eventId: string,
@@ -229,7 +229,7 @@ export class EncounterController {
   }
 
   @Post()
-  @Roles(['user'])
+  @Roles(['APP'])
   async create(
     @Req() req,
     @Query('eventId') eventId: number,
@@ -257,7 +257,7 @@ export class EncounterController {
   }
 
   @Get('/active')
-  @Roles(['user'])
+  @Roles(['APP'])
   async findActiveRfid(
       @Req() req,
       @Query('eventId') eventId: number,
@@ -286,7 +286,7 @@ export class EncounterController {
   }
 
   @Get()
-  @Roles(['admin'])
+  @Roles(['EPD'])
   async findAll(
     @Req() req,
     @Query() query: QuerySearchParamsDto,
@@ -306,7 +306,7 @@ export class EncounterController {
   }
 
   @Get(':id')
-  @Roles(['admin'])
+  @Roles(['EPD'])
   async findOne(
     @Req() req,
     @Query('eventId') eventId: number,
@@ -330,7 +330,7 @@ export class EncounterController {
   }
 
   @Put(':id')
-  @Roles(['admin'])
+  @Roles(['EPD'])
   async update(
     @Req() req,
     @Query('eventId') eventId: number,
@@ -358,30 +358,5 @@ export class EncounterController {
       id,
       updateEncounterDto,
     );
-  }
-
-  @Delete(':id')
-  @Roles(['admin'])
-  async delete(
-    @Req() req,
-    @Query('eventId') eventId: number,
-    @Query('aidPostId') aidPostId: number,
-    @Param('id') id: number,
-  ): Promise<PatientEncounterModel> {
-    const tenantId = +req.headers['tenant-id'];
-    if (!eventId || isNaN(eventId)) {
-      throw new BadRequestException('Event ID is invalid');
-    }
-    if (!aidPostId || isNaN(aidPostId)) {
-      throw new BadRequestException('AidPost ID is invalid');
-    }
-    if (!tenantId || isNaN(tenantId)) {
-      throw new BadRequestException('Tenant ID is invalid');
-    }
-    if (!id || isNaN(id)) {
-      throw new BadRequestException('Encounter ID is invalid');
-    }
-    await this.encounterService.delete(eventId, aidPostId, tenantId, id);
-    return null;
   }
 }

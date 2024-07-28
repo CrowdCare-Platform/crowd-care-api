@@ -1,7 +1,6 @@
 import {BadRequestException, Body, Controller, Post, Query, Req, UploadedFile, UseGuards} from '@nestjs/common';
 import {LogtoAuthGuard} from "../auth/auth.guard";
 import {Roles} from "../auth/roles.decorator";
-import {CreateMedicationStorageDto} from "../medication-storage/dto/createMedicationStorage.dto";
 import {NewFeedbackDto} from "./dto/newFeedback.dto";
 import {FeedbackService} from "./feedback.service";
 
@@ -12,7 +11,7 @@ export class FeedbackController {
         private readonly feedbackService: FeedbackService,
     ) {}
     @Post()
-    @Roles(['admin', 'coordinator', 'user'])
+    @Roles(['ADMIN', 'APP', 'CP-MED', 'CP-EVENT', 'EPD'])
     async create(
         @Req() req,
         @Query('eventId') eventId: string,

@@ -29,9 +29,11 @@ export class LogtoAuthGuard implements CanActivate {
         }
         const user = request['user'];
         const tenantId = request.headers['tenant-id'];
+        console.log(user, "user");
+        console.log(tenantId, "tenantId");
         if (tenantId) {
             const tenant = await this.tenantService.findOneOnId(+tenantId);
-            if (!user.organizations.map(_ => _.description).includes(tenant.url)) {
+            if (!user?.organizations.map(_ => _.description).includes(tenant.url)) {
                 throw new UnauthorizedException(`Tenant and user don't match!`);
             }
         }

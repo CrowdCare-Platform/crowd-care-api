@@ -23,7 +23,7 @@ export class MedicationStorageController {
     ) {}
 
     @Post()
-    @Roles(['admin', 'coordinator', 'user'])
+    @Roles(['APP'])
     @UseInterceptors(FileInterceptor('file'))
     async create(
         @Req() req,
@@ -51,7 +51,7 @@ export class MedicationStorageController {
 
 
     @Get('/sticker/:stickerCode')
-    @Roles(['admin', 'coordinator', 'user'])
+    @Roles(['APP', 'EPD'])
     getMedicationStorageByStickerCode(
         @Req() req,
         @Query('eventId') eventId: string,
@@ -75,7 +75,7 @@ export class MedicationStorageController {
     }
 
     @Get('/rfid/:rfid')
-    @Roles(['admin', 'coordinator', 'user'])
+    @Roles(['APP', 'EPD'])
     getMedicationStorageByRfid(
         @Req() req,
         @Query('eventId') eventId: string,
@@ -95,7 +95,7 @@ export class MedicationStorageController {
     }
 
     @Delete('/:id')
-    @Roles(['admin', 'coordinator', 'user'])
+    @Roles(['APP'])
     softDeleteMedicationStorage(
         @Req() req,
         @Param('id') id: string,
