@@ -38,6 +38,7 @@ model Event {
   tenantId    Int
   tenant      Tenant      @relation(fields: [tenantId], references: [id])
   AidPost     AidPost[]
+  logo        String?     @db.VarChar(255)
 }
 
 model AidPost {
@@ -51,7 +52,7 @@ model AidPost {
 
 model PatientEncounter {
   id                 Int             @id @default(autoincrement())
-  qrCode             String?         @unique
+  qrCode             String?
   rfid               String
   timeIn             DateTime
   methodIn           MethodIn

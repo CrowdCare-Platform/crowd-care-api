@@ -14,6 +14,9 @@ import { Cache } from 'cache-manager';
 import {CreateParameterSetDto} from "./dto/createParameterSet.dto";
 import {AddTriageDto} from "./dto/addTriage.dto";
 import {RegulationPayloadDto} from "./dto/regulationPayload.dto";
+import {GetEncountersWithFiltersDto} from "./dto/getEncountersWithFilters.dto";
+import {applyFilters} from "../utils/filter";
+import {Prisma} from "@prisma/client";
 
 @Injectable()
 export class EncounterService {
@@ -97,6 +100,39 @@ export class EncounterService {
         attachments: createEncounterDto.attachments
           ? createEncounterDto.attachments
           : [],
+      },
+    });
+  }
+
+  async findWithFilters(
+    query: GetEncountersWithFiltersDto,
+  ): Promise<PatientEncounterModel[]> {
+    const { whereBuilder } = await applyFilters<Prisma.PatientEncounterWhereInput>({
+      appliedFiltersInput: query,
+      availableFilters: {
+        qrCode: async ({filter}: {filter: string}) => {
+            return {
+                where: {
+                  qrCode: {
+                    contains: filter
+                  }
+                }
+            }
+        }
+      }
+    });
+
+    return this.prisma.patientEncounter.findMany({
+      where: {
+        AND: {
+            ...whereBuilder,
+          qrCode: {
+              not: null
+          },
+          triage: {
+                not: "WHITE"
+          }
+        }
       },
     });
   }
@@ -234,21 +270,6 @@ export class EncounterService {
         attachments: createEncounterDto.attachments
           ? createEncounterDto.attachments
           : [],
-      },
-    });
-  }
-
-  async delete(
-    eventId: number,
-    aidPostId: number,
-    tenantId: number,
-    id: number,
-  ): Promise<PatientEncounterModel> {
-    await this.eventService.getAidPost(eventId, aidPostId, tenantId);
-
-    return this.prisma.patientEncounter.delete({
-      where: {
-        id: id,
       },
     });
   }

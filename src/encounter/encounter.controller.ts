@@ -21,6 +21,7 @@ import {CreateParameterSetDto} from "./dto/createParameterSet.dto";
 import {AddTriageDto} from "./dto/addTriage.dto";
 import {RegulationPayloadDto} from "./dto/regulationPayload.dto";
 import {FileInterceptor} from "@nestjs/platform-express";
+import {GetEncountersWithFiltersDto} from "./dto/getEncountersWithFilters.dto";
 
 @Controller('encounter')
 @UseGuards(LogtoAuthGuard)
@@ -282,6 +283,19 @@ export class EncounterController {
         throw new BadRequestException('Both RFID and QrCode in request');
     }
     return this.encounterService.findActiveRfid(eventId, aidPostId, tenantId, rfid, qrCode);
+  }
+
+  @Get('/withFilter')
+  @Roles(['EPD'])
+  async findAllWithFilter(
+      @Req() req,
+      @Query() query: GetEncountersWithFiltersDto,
+  ): Promise<PatientEncounterModel[]> {
+    const tenantId = +req.headers['tenant-id'];
+    if (!tenantId || isNaN(tenantId)) {
+          throw new BadRequestException('Tenant ID is invalid');
+    }
+    return this.encounterService.findWithFilters(query);
   }
 
   @Get()
