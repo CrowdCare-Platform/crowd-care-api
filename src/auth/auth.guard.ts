@@ -22,6 +22,7 @@ export class LogtoAuthGuard implements CanActivate {
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const request = context.switchToHttp().getRequest() as Request;
+        console.log(request);
         await this.verifyAuthFromRequest(request);
         const roles = this.reflector.get(Roles, context.getHandler());
         if (!roles) {
