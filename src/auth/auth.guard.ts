@@ -22,7 +22,6 @@ export class LogtoAuthGuard implements CanActivate {
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const request = context.switchToHttp().getRequest() as Request;
-        console.log(request);
         await this.verifyAuthFromRequest(request);
         const roles = this.reflector.get(Roles, context.getHandler());
         if (!roles) {
@@ -30,8 +29,6 @@ export class LogtoAuthGuard implements CanActivate {
         }
         const user = request['user'];
         const tenantId = request.headers['tenant-id'];
-        console.log(user, "user");
-        console.log(tenantId, "tenantId");
         if (tenantId) {
             const tenant = await this.tenantService.findOneOnId(+tenantId);
             if (!user?.organizations.map(_ => _.description).includes(tenant.url)) {
