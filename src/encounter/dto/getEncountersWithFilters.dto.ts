@@ -1,6 +1,4 @@
 import {
-    IsBoolean,
-    isBoolean,
     IsDateString,
     IsEnum, IsNumber, IsOptional, IsString,
 } from 'class-validator';
@@ -8,6 +6,7 @@ import {
     ChiefComplaint, Gender, MethodIn, MethodOut, PatientType,
     TriageCategory,
 } from '@prisma/client';
+import {Type} from "class-transformer";
 
 export class GetEncountersWithFiltersDto {
 
@@ -32,6 +31,7 @@ export class GetEncountersWithFiltersDto {
     methodIn?: MethodIn
 
     @IsNumber()
+    @Type(() => Number)
     @IsOptional()
     ambulanceInId?: number
 
@@ -56,22 +56,17 @@ export class GetEncountersWithFiltersDto {
     methodOut?: MethodOut
 
     @IsNumber()
+    @Type(() => Number)
     @IsOptional()
     ambulanceOutId?: number
 
     @IsNumber()
+    @Type(() => Number)
     @IsOptional()
     hospitalOutId?: number
 
     @IsNumber()
+    @Type(() => Number)
     @IsOptional()
     aidPostId?: number
-
-    @IsBoolean()
-    @IsOptional()
-    hasAttachments?: boolean
-
-    @IsBoolean()
-    @IsOptional()
-    hasParameters?: boolean
 }

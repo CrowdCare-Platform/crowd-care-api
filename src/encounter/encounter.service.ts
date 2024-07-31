@@ -1,7 +1,7 @@
-import {Inject, Injectable, NotFoundException} from '@nestjs/common';
+import {Body, Inject, Injectable, NotFoundException, Query} from '@nestjs/common';
 import {
   S3Client,
-  PutObjectCommand,
+  PutObjectCommand, GetObjectCommand,
 } from "@aws-sdk/client-s3";
 import { CreatePatientEncounterDto } from './dto/createPatientEncounter.dto';
 import { PatientEncounter as PatientEncounterModel } from '.prisma/client';
@@ -16,7 +16,8 @@ import {AddTriageDto} from "./dto/addTriage.dto";
 import {RegulationPayloadDto} from "./dto/regulationPayload.dto";
 import {GetEncountersWithFiltersDto} from "./dto/getEncountersWithFilters.dto";
 import {applyFilters} from "../utils/filter";
-import {Prisma} from "@prisma/client";
+import {ChiefComplaint, Gender, MethodIn, MethodOut, PatientType, Prisma, TriageCategory} from "@prisma/client";
+import {getSignedUrl} from "@aws-sdk/s3-request-presigner";
 
 @Injectable()
 export class EncounterService {
@@ -114,27 +115,145 @@ export class EncounterService {
             return {
                 where: {
                   qrCode: {
-                    contains: filter
-                  }
+                    contains: filter,
+                  },
                 }
             }
+        },
+        rfid: async ({filter}: {filter: string}) => {
+          return {
+            where: {
+              rfid: {
+                equals: filter
+              }
+            }
+          }
+        },
+        startDate: async ({filter}: {filter: string}) => {
+          return {
+            where: {
+              timeIn: {
+                gte: new Date(filter)
+              }
+            }
+          }
+        },
+        endDate: async ({filter}: {filter: string}) => {
+          return {
+            where: {
+              timeOut: {
+                lte: new Date(filter)
+              }
+            }
+          }
+        },
+        methodIn: async ({filter}: {filter: string}) => {
+          return {
+            where: {
+              methodIn: {
+                equals: (filter as MethodIn)
+              }
+            }
+          }
+        },
+        ambulanceInId: async ({filter}: {filter: string}) => {
+          return {
+            where: {
+              ambulanceInId: {
+                equals: +filter
+              }
+            }
+          }
+        },
+        gender: async ({filter}: {filter: string}) => {
+          return {
+            where: {
+              gender: {
+                equals: (filter as Gender)
+              }
+            }
+          }
+        },
+        patientType: async ({filter}: {filter: string}) => {
+          return {
+            where: {
+              patientType: {
+                equals: (filter as PatientType)
+              }
+            }
+          }
+        },
+        triage: async ({filter}: {filter: string}) => {
+          return {
+            where: {
+              triage: {
+                equals: (filter as TriageCategory)
+              }
+            }
+          }
+        },
+        chiefComplaint: async ({filter}: {filter: string}) => {
+          return {
+            where: {
+              chiefComplaint: {
+                equals: (filter as ChiefComplaint)
+              }
+            }
+          }
+        },
+        methodOut: async ({filter}: {filter: string}) => {
+          return {
+            where: {
+              methodOut: {
+                equals: (filter as MethodOut)
+              }
+            }
+          }
+        },
+        ambulanceOutId: async ({filter}: {filter: string}) => {
+          return {
+            where: {
+              ambulanceOutId: {
+                equals: +filter
+              }
+            }
+          }
+        },
+        hospitalOutId: async ({filter}: {filter: string}) => {
+          return {
+            where: {
+              hospitalOutId: {
+                equals: +filter
+              }
+            }
+          }
+        },
+        aidPostId: async ({filter}: {filter: string}) => {
+          return {
+            where: {
+              aidPostId: {
+                equals: +filter
+              }
+            }
+          }
+        },
+      },
+      defaultFilters: {
+        triage: async () => {
+            return Promise.resolve({
+                where: {
+                  triage: {
+                      not: TriageCategory.WHITE
+                  }
+                }
+            });
         }
       }
     });
 
     return this.prisma.patientEncounter.findMany({
-      where: {
-        AND: {
-            ...whereBuilder,
-          qrCode: {
-              not: null
-          },
-          triage: {
-                not: "WHITE"
-          }
-        }
-      },
-    });
+      where: whereBuilder,
+      });
   }
 
   async findAll(
@@ -159,13 +278,9 @@ export class EncounterService {
   }
 
   async findOne(
-    eventId: number,
-    aidPostId: number,
     tenantId: number,
     id: number,
   ): Promise<PatientEncounterModel> {
-    await this.eventService.getAidPost(eventId, aidPostId, tenantId);
-
     const encounter = await this.prisma.patientEncounter.findUnique({
       where: {
         id: id,
@@ -659,5 +774,44 @@ export class EncounterService {
         },
       },
     });
+  }
+
+  async updateNotes(
+      encounterId: string,
+      tenantId: number,
+      eventId: number,
+      noteDto: { notes: string },
+  ) {
+    const aidPosts = await this.eventService.getAidPosts(eventId, +tenantId);
+    return this.prisma.patientEncounter.update({
+      where: {
+        id: +encounterId,
+        aidPostId: {
+          in: aidPosts.map((aidPost) => aidPost.id),
+        },
+      },
+      data: {
+        comments: noteDto.notes,
+      }
+    });
+  }
+
+  async downloadAttachment(
+    tenantId: number,
+    type: "FORM" | "IMAGE" | "MEDICATION_REGISTRATION",
+    attachmentName: string,
+    eventId: number,
+    aidPostId: number,
+  ) {
+    await this.eventService.getAidPost(eventId, aidPostId, tenantId);
+
+    const bucket = type === "FORM" ? process.env.S3_BUCKET_PATIENT_ENCOUNTER_FORMS : type === "IMAGE" ? process.env.S3_BUCKET_PATIENT_ENCOUNTER_PHOTOS : process.env.S3_BUCKET_MEDICATION_STORAGE;
+    const params = {
+      Bucket: bucket,
+      Key: attachmentName,
+    };
+    const command = new GetObjectCommand(params);
+    const signedUrl = await getSignedUrl(this.s3, command, { expiresIn: 3 * 60 });
+    return {url: signedUrl};
   }
 }

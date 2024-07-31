@@ -9,7 +9,7 @@ import {
   Query,
   Req, UploadedFile, UseGuards, UseInterceptors,
 } from '@nestjs/common';
-import { PatientEncounter as PatientEncounterModel } from '.prisma/client';
+import {PatientEncounter as PatientEncounterModel} from '.prisma/client';
 import { EncounterService } from './encounter.service';
 import { CreatePatientEncounterDto } from './dto/createPatientEncounter.dto';
 import { QuerySearchParamsDto } from './dto/querySearchParams.dto';
@@ -22,11 +22,65 @@ import {AddTriageDto} from "./dto/addTriage.dto";
 import {RegulationPayloadDto} from "./dto/regulationPayload.dto";
 import {FileInterceptor} from "@nestjs/platform-express";
 import {GetEncountersWithFiltersDto} from "./dto/getEncountersWithFilters.dto";
+import {CreateEventDto} from "../event/dto/createEvent.dto";
+import {PatientEncounter} from "@prisma/client";
 
 @Controller('encounter')
 @UseGuards(LogtoAuthGuard)
 export class EncounterController {
   constructor(private readonly encounterService: EncounterService) {}
+
+  @Post('/updateNotes')
+  @Roles(['EPD'])
+  async updateNotes(
+      @Req() req,
+      @Query('encounterId') encounterId: string,
+      @Query('eventId') eventId: string,
+      @Body() body: { notes: string },
+  ) {
+    const tenantId = +req.headers['tenant-id'];
+    if (!tenantId || isNaN(tenantId)) {
+      throw new BadRequestException('Tenant ID is invalid');
+    }
+    if (!eventId || isNaN(+eventId)) {
+      throw new BadRequestException('Event ID is invalid');
+    }
+    return this.encounterService.updateNotes(encounterId, tenantId, +eventId, body);
+  }
+
+  @Get('attachment')
+  @Roles(['EPD'])
+  async downloadAttachment(
+      @Req() req,
+      @Query('type') type: "FORM" | "IMAGE" | "MEDICATION_REGISTRATION",
+      @Query('eventId') eventId: string,
+      @Query('aidPostId') aidPostId: string,
+      @Query('attachmentName') attachmentName: string,
+  ): Promise<{url: string}> {
+    const tenantId = +req.headers['tenant-id'];
+    if (!tenantId || isNaN(tenantId)) {
+      throw new BadRequestException('Tenant ID is invalid');
+    }
+    if (!eventId || isNaN(+eventId)) {
+      throw new BadRequestException('Event ID is invalid');
+    }
+    if (!aidPostId || isNaN(+aidPostId)) {
+      throw new BadRequestException('AidPost ID is invalid');
+    }
+    if (!type) {
+      throw new BadRequestException('Attachment type not found');
+    }
+    if (!attachmentName) {
+      throw new BadRequestException('Attachment name not found');
+    }
+    return this.encounterService.downloadAttachment(
+      tenantId,
+      type,
+      attachmentName,
+        +eventId,
+        +aidPostId
+    );
+  }
 
   @Post('/uploadImage')
   @Roles(['APP'])
@@ -322,24 +376,16 @@ export class EncounterController {
   @Roles(['EPD'])
   async findOne(
     @Req() req,
-    @Query('eventId') eventId: number,
-    @Query('aidPostId') aidPostId: number,
     @Param('id') id: number,
   ): Promise<PatientEncounterModel> {
     const tenantId = +req.headers['tenant-id'];
-    if (!eventId || isNaN(eventId)) {
-      throw new BadRequestException('Event ID is invalid');
-    }
-    if (!aidPostId || isNaN(aidPostId)) {
-      throw new BadRequestException('AidPost ID is invalid');
-    }
     if (!tenantId || isNaN(tenantId)) {
       throw new BadRequestException('Tenant ID is invalid');
     }
     if (!id || isNaN(id)) {
       throw new BadRequestException('Encounter ID is invalid');
     }
-    return this.encounterService.findOne(eventId, aidPostId, tenantId, id);
+    return this.encounterService.findOne(tenantId, id);
   }
 
   @Put(':id')
