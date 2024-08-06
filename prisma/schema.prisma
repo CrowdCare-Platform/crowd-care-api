@@ -42,12 +42,17 @@ model Event {
 }
 
 model AidPost {
-  id                Int                 @id @default(autoincrement())
-  name              String              @db.VarChar(255)
-  patientEncounters PatientEncounter[]
-  event             Event               @relation(fields: [eventId], references: [id])
-  eventId           Int
-  MedicationStorage MedicationStorage[]
+  id                  Int                 @id @default(autoincrement())
+  name                String              @db.VarChar(255)
+  patientEncounters   PatientEncounter[]
+  event               Event               @relation(fields: [eventId], references: [id])
+  eventId             Int
+  waitingRoomCapacity Int                 @default(0)
+  T3Capacity          Int                 @default(0)
+  T2Capacity          Int                 @default(0)
+  T1Capacity          Int                 @default(0)
+  SleepCapacity       Int                 @default(0)
+  MedicationStorage   MedicationStorage[]
 }
 
 model PatientEncounter {
