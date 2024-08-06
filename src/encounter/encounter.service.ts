@@ -1,39 +1,54 @@
-import {Body, Inject, Injectable, NotFoundException, Query} from '@nestjs/common';
+import {
+  Body,
+  Inject,
+  Injectable,
+  NotFoundException,
+  Query,
+} from '@nestjs/common';
 import {
   S3Client,
-  PutObjectCommand, GetObjectCommand,
-} from "@aws-sdk/client-s3";
+  PutObjectCommand,
+  GetObjectCommand,
+} from '@aws-sdk/client-s3';
 import { CreatePatientEncounterDto } from './dto/createPatientEncounter.dto';
 import { PatientEncounter as PatientEncounterModel } from '.prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { EventService } from '../event/event.service';
 import { QuerySearchParamsDto } from './dto/querySearchParams.dto';
-import {RealTimeStatsOfEventDto} from "./dto/realTimeStatsOfEventDto";
-import {CACHE_MANAGER} from "@nestjs/cache-manager";
+import { RealTimeStatsOfEventDto } from './dto/realTimeStatsOfEventDto';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
-import {CreateParameterSetDto} from "./dto/createParameterSet.dto";
-import {AddTriageDto} from "./dto/addTriage.dto";
-import {RegulationPayloadDto} from "./dto/regulationPayload.dto";
-import {GetEncountersWithFiltersDto} from "./dto/getEncountersWithFilters.dto";
-import {applyFilters} from "../utils/filter";
-import {ChiefComplaint, Gender, MethodIn, MethodOut, PatientType, Prisma, TriageCategory} from "@prisma/client";
-import {getSignedUrl} from "@aws-sdk/s3-request-presigner";
+import { CreateParameterSetDto } from './dto/createParameterSet.dto';
+import { AddTriageDto } from './dto/addTriage.dto';
+import { RegulationPayloadDto } from './dto/regulationPayload.dto';
+import { GetEncountersWithFiltersDto } from './dto/getEncountersWithFilters.dto';
+import { applyFilters } from '../utils/filter';
+import {
+  ChiefComplaint,
+  Gender,
+  MethodIn,
+  MethodOut,
+  PatientType,
+  Prisma,
+  TriageCategory,
+} from '@prisma/client';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 @Injectable()
 export class EncounterService {
   constructor(
     private prisma: PrismaService,
     private eventService: EventService,
-    @Inject(CACHE_MANAGER) private cacheManager: Cache
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
   private s3 = new S3Client({
     endpoint: process.env.S3_ENDPOINT,
     region: process.env.S3_REGION,
     credentials: {
-      accessKeyId: process.env.S3_ACCESS_KEY_ID || "",
-      secretAccessKey: process.env.S3_SECRET_ACCESS_KEY || ""
-    }
+      accessKeyId: process.env.S3_ACCESS_KEY_ID || '',
+      secretAccessKey: process.env.S3_SECRET_ACCESS_KEY || '',
+    },
   });
   async create(
     eventId: number,
@@ -108,152 +123,153 @@ export class EncounterService {
   async findWithFilters(
     query: GetEncountersWithFiltersDto,
   ): Promise<PatientEncounterModel[]> {
-    const { whereBuilder } = await applyFilters<Prisma.PatientEncounterWhereInput>({
-      appliedFiltersInput: query,
-      availableFilters: {
-        qrCode: async ({filter}: {filter: string}) => {
+    const { whereBuilder } =
+      await applyFilters<Prisma.PatientEncounterWhereInput>({
+        appliedFiltersInput: query,
+        availableFilters: {
+          qrCode: async ({ filter }: { filter: string }) => {
             return {
-                where: {
-                  qrCode: {
-                    contains: filter,
-                  },
-                }
-            }
+              where: {
+                qrCode: {
+                  contains: filter,
+                },
+              },
+            };
+          },
+          rfid: async ({ filter }: { filter: string }) => {
+            return {
+              where: {
+                rfid: {
+                  equals: filter,
+                },
+              },
+            };
+          },
+          startDate: async ({ filter }: { filter: string }) => {
+            return {
+              where: {
+                timeIn: {
+                  gte: new Date(filter),
+                },
+              },
+            };
+          },
+          endDate: async ({ filter }: { filter: string }) => {
+            return {
+              where: {
+                timeOut: {
+                  lte: new Date(filter),
+                },
+              },
+            };
+          },
+          methodIn: async ({ filter }: { filter: string }) => {
+            return {
+              where: {
+                methodIn: {
+                  equals: filter as MethodIn,
+                },
+              },
+            };
+          },
+          ambulanceInId: async ({ filter }: { filter: string }) => {
+            return {
+              where: {
+                ambulanceInId: {
+                  equals: +filter,
+                },
+              },
+            };
+          },
+          gender: async ({ filter }: { filter: string }) => {
+            return {
+              where: {
+                gender: {
+                  equals: filter as Gender,
+                },
+              },
+            };
+          },
+          patientType: async ({ filter }: { filter: string }) => {
+            return {
+              where: {
+                patientType: {
+                  equals: filter as PatientType,
+                },
+              },
+            };
+          },
+          triage: async ({ filter }: { filter: string }) => {
+            return {
+              where: {
+                triage: {
+                  equals: filter as TriageCategory,
+                },
+              },
+            };
+          },
+          chiefComplaint: async ({ filter }: { filter: string }) => {
+            return {
+              where: {
+                chiefComplaint: {
+                  equals: filter as ChiefComplaint,
+                },
+              },
+            };
+          },
+          methodOut: async ({ filter }: { filter: string }) => {
+            return {
+              where: {
+                methodOut: {
+                  equals: filter as MethodOut,
+                },
+              },
+            };
+          },
+          ambulanceOutId: async ({ filter }: { filter: string }) => {
+            return {
+              where: {
+                ambulanceOutId: {
+                  equals: +filter,
+                },
+              },
+            };
+          },
+          hospitalOutId: async ({ filter }: { filter: string }) => {
+            return {
+              where: {
+                hospitalOutId: {
+                  equals: +filter,
+                },
+              },
+            };
+          },
+          aidPostId: async ({ filter }: { filter: string }) => {
+            return {
+              where: {
+                aidPostId: {
+                  equals: +filter,
+                },
+              },
+            };
+          },
         },
-        rfid: async ({filter}: {filter: string}) => {
-          return {
-            where: {
-              rfid: {
-                equals: filter
-              }
-            }
-          }
-        },
-        startDate: async ({filter}: {filter: string}) => {
-          return {
-            where: {
-              timeIn: {
-                gte: new Date(filter)
-              }
-            }
-          }
-        },
-        endDate: async ({filter}: {filter: string}) => {
-          return {
-            where: {
-              timeOut: {
-                lte: new Date(filter)
-              }
-            }
-          }
-        },
-        methodIn: async ({filter}: {filter: string}) => {
-          return {
-            where: {
-              methodIn: {
-                equals: (filter as MethodIn)
-              }
-            }
-          }
-        },
-        ambulanceInId: async ({filter}: {filter: string}) => {
-          return {
-            where: {
-              ambulanceInId: {
-                equals: +filter
-              }
-            }
-          }
-        },
-        gender: async ({filter}: {filter: string}) => {
-          return {
-            where: {
-              gender: {
-                equals: (filter as Gender)
-              }
-            }
-          }
-        },
-        patientType: async ({filter}: {filter: string}) => {
-          return {
-            where: {
-              patientType: {
-                equals: (filter as PatientType)
-              }
-            }
-          }
-        },
-        triage: async ({filter}: {filter: string}) => {
-          return {
-            where: {
-              triage: {
-                equals: (filter as TriageCategory)
-              }
-            }
-          }
-        },
-        chiefComplaint: async ({filter}: {filter: string}) => {
-          return {
-            where: {
-              chiefComplaint: {
-                equals: (filter as ChiefComplaint)
-              }
-            }
-          }
-        },
-        methodOut: async ({filter}: {filter: string}) => {
-          return {
-            where: {
-              methodOut: {
-                equals: (filter as MethodOut)
-              }
-            }
-          }
-        },
-        ambulanceOutId: async ({filter}: {filter: string}) => {
-          return {
-            where: {
-              ambulanceOutId: {
-                equals: +filter
-              }
-            }
-          }
-        },
-        hospitalOutId: async ({filter}: {filter: string}) => {
-          return {
-            where: {
-              hospitalOutId: {
-                equals: +filter
-              }
-            }
-          }
-        },
-        aidPostId: async ({filter}: {filter: string}) => {
-          return {
-            where: {
-              aidPostId: {
-                equals: +filter
-              }
-            }
-          }
-        },
-      },
-      defaultFilters: {
-        triage: async () => {
+        defaultFilters: {
+          triage: async () => {
             return Promise.resolve({
-                where: {
-                  triage: {
-                      not: TriageCategory.WHITE
-                  }
-                }
+              where: {
+                triage: {
+                  not: TriageCategory.WHITE,
+                },
+              },
             });
-        }
-      }
-    });
+          },
+        },
+      });
 
     return this.prisma.patientEncounter.findMany({
       where: whereBuilder,
-      });
+    });
   }
 
   async findAll(
@@ -277,10 +293,7 @@ export class EncounterService {
     });
   }
 
-  async findOne(
-    tenantId: number,
-    id: number,
-  ): Promise<PatientEncounterModel> {
+  async findOne(tenantId: number, id: number): Promise<PatientEncounterModel> {
     const encounter = await this.prisma.patientEncounter.findUnique({
       where: {
         id: id,
@@ -294,11 +307,11 @@ export class EncounterService {
   }
 
   async findActiveRfid(
-      eventId: number,
-      aidPostId: number,
-      tenantId: number,
-      rfid?: string,
-      qrCode?: string,
+    eventId: number,
+    aidPostId: number,
+    tenantId: number,
+    rfid?: string,
+    qrCode?: string,
   ): Promise<PatientEncounterModel> {
     await this.eventService.getAidPost(eventId, aidPostId, tenantId);
 
@@ -359,7 +372,9 @@ export class EncounterService {
         triage: createEncounterDto.triage
           ? createEncounterDto.triage
           : undefined,
-        timeTriage: createEncounterDto.timeTriage ? new Date(createEncounterDto.timeTriage) : undefined,
+        timeTriage: createEncounterDto.timeTriage
+          ? new Date(createEncounterDto.timeTriage)
+          : undefined,
         chiefComplaint: createEncounterDto.chiefComplaint
           ? createEncounterDto.chiefComplaint
           : undefined,
@@ -390,9 +405,9 @@ export class EncounterService {
   }
 
   private async calculateRealTimeStatsOfEvent(
-      eventId: number,
-        tenantId: number,
-    ): Promise<RealTimeStatsOfEventDto[]> {
+    eventId: number,
+    tenantId: number,
+  ): Promise<RealTimeStatsOfEventDto[]> {
     // Step 1: Get all aid posts of the event
     const aidPosts = await this.eventService.getAidPosts(eventId, tenantId);
     const aidPostIds = aidPosts.map((aidPost) => aidPost.id);
@@ -463,12 +478,24 @@ export class EncounterService {
 
     // Step 3: Combine results
     return aidPosts.map((aidPost) => {
-      const red = redEncountersPerAidPost.find((encounter) => encounter.aidPostId === aidPost.id);
-      const yellow = yellowEncountersPerAidPost.find((encounter) => encounter.aidPostId === aidPost.id);
-      const green = greenEncountersPerAidPost.find((encounter) => encounter.aidPostId === aidPost.id);
-      const white = whiteEncountersPerAidPost.find((encounter) => encounter.aidPostId === aidPost.id);
-      const unknown = unknownEncountersPerAidPost.find((encounter) => encounter.aidPostId === aidPost.id);
-      const treatmentNotStarted = treatmentNotStartedPerAidPost.find((encounter) => encounter.aidPostId === aidPost.id);
+      const red = redEncountersPerAidPost.find(
+        (encounter) => encounter.aidPostId === aidPost.id,
+      );
+      const yellow = yellowEncountersPerAidPost.find(
+        (encounter) => encounter.aidPostId === aidPost.id,
+      );
+      const green = greenEncountersPerAidPost.find(
+        (encounter) => encounter.aidPostId === aidPost.id,
+      );
+      const white = whiteEncountersPerAidPost.find(
+        (encounter) => encounter.aidPostId === aidPost.id,
+      );
+      const unknown = unknownEncountersPerAidPost.find(
+        (encounter) => encounter.aidPostId === aidPost.id,
+      );
+      const treatmentNotStarted = treatmentNotStartedPerAidPost.find(
+        (encounter) => encounter.aidPostId === aidPost.id,
+      );
 
       return {
         aidPostId: aidPost.id,
@@ -477,91 +504,102 @@ export class EncounterService {
         GREEN: green ? green._count.id : 0,
         WHITE: white ? white._count.id : 0,
         unknown: unknown ? unknown._count.id : 0,
-        treatmentNotStarted: treatmentNotStarted ? treatmentNotStarted._count.id : 0,
+        treatmentNotStarted: treatmentNotStarted
+          ? treatmentNotStarted._count.id
+          : 0,
       };
     });
   }
 
   async getRealTimeStatsOfEvent(
-      eventId: number,
-      tenantId: number,
+    eventId: number,
+    tenantId: number,
   ): Promise<RealTimeStatsOfEventDto[]> {
-    const cachedValue = await this.cacheManager.get<RealTimeStatsOfEventDto[]>(`realTimeStatsOfEvent-${eventId}-${tenantId}`);
+    const cachedValue = await this.cacheManager.get<RealTimeStatsOfEventDto[]>(
+      `realTimeStatsOfEvent-${eventId}-${tenantId}`,
+    );
     if (cachedValue) {
       return cachedValue;
     } else {
       const stats = await this.calculateRealTimeStatsOfEvent(eventId, tenantId);
-      await this.cacheManager.set(`realTimeStatsOfEvent-${eventId}-${tenantId}`, stats, 60000);
+      await this.cacheManager.set(
+        `realTimeStatsOfEvent-${eventId}-${tenantId}`,
+        stats,
+        60000,
+      );
       return stats;
     }
   }
 
   async getActiveRegistrationsForAidPost(
-        eventId: number,
-        aidPostId: number,
-        tenantId: number,
-    ): Promise<PatientEncounterModel[]> {
-        await this.eventService.getAidPost(eventId, aidPostId, tenantId);
-        return this.prisma.patientEncounter.findMany({
-          where: {
-              aidPostId: aidPostId,
-              timeOut: null,
-          },
-          orderBy: { timeIn: 'asc' },
-        });
-    }
+    eventId: number,
+    aidPostId: number,
+    tenantId: number,
+  ): Promise<PatientEncounterModel[]> {
+    await this.eventService.getAidPost(eventId, aidPostId, tenantId);
+    return this.prisma.patientEncounter.findMany({
+      where: {
+        aidPostId: aidPostId,
+        timeOut: null,
+      },
+      orderBy: { timeIn: 'asc' },
+    });
+  }
 
-    async getAllEncountersForRfid(
-        rfid: string,
-        eventId: number,
-        tenantId: number,
-    ): Promise<PatientEncounterModel[]> {
-      const aidPostsOfEvent = await this.eventService.getAidPosts(eventId, tenantId);
-      return this.prisma.patientEncounter.findMany({
+  async getAllEncountersForRfid(
+    rfid: string,
+    eventId: number,
+    tenantId: number,
+  ): Promise<PatientEncounterModel[]> {
+    const aidPostsOfEvent = await this.eventService.getAidPosts(
+      eventId,
+      tenantId,
+    );
+    return this.prisma.patientEncounter.findMany({
+      where: {
+        rfid: rfid,
+        aidPostId: {
+          in: aidPostsOfEvent.map((aidPost) => aidPost.id),
+        },
+      },
+    });
+  }
+
+  async startTreatment(
+    tenantId: number,
+    eventId: number,
+    aidPostId: number,
+    encounterId?: string,
+    rfid?: string,
+  ) {
+    await this.eventService.getAidPost(eventId, aidPostId, tenantId);
+    if (encounterId) {
+      return this.prisma.patientEncounter.update({
         where: {
-          rfid: rfid,
-          aidPostId: {
-            in: aidPostsOfEvent.map((aidPost) => aidPost.id),
-          }
+          id: +encounterId,
+        },
+        data: {
+          timeStartTreatment: new Date(),
+        },
+      });
+    } else {
+      return this.prisma.patientEncounter.updateMany({
+        where: {
+          rfid,
+          timeStartTreatment: null,
+        },
+        data: {
+          timeStartTreatment: new Date(),
         },
       });
     }
-
-    async startTreatment(
-        tenantId: number,
-        eventId: number,
-        aidPostId: number,
-        encounterId?: string,
-        rfid?: string,
-    ) {
-        await this.eventService.getAidPost(eventId, aidPostId, tenantId);
-        if (encounterId) {
-          return this.prisma.patientEncounter.update({
-            where: {
-              id: +encounterId,
-            },
-            data: {
-              timeStartTreatment: new Date(),
-            },
-          });
-        } else {
-          return this.prisma.patientEncounter.updateMany({
-            where: {
-              rfid,
-              timeStartTreatment: null,
-            },
-            data: {
-              timeStartTreatment: new Date(),
-            },
-          });
-        }
-    }
+  }
 
   async getParameters(
-      tenantId: number,
-      eventId: number,
-      aidPostId: number,
-      code: string,
+    tenantId: number,
+    eventId: number,
+    aidPostId: number,
+    code: string,
   ) {
     await this.eventService.getAidPost(eventId, aidPostId, tenantId);
     const encounterBasedOnRfid = await this.prisma.patientEncounter.findFirst({
@@ -578,12 +616,14 @@ export class EncounterService {
         },
       });
     }
-    const encounterBasedOnQrCode = await this.prisma.patientEncounter.findFirst({
-      where: {
-        qrCode: code,
-        aidPostId: aidPostId,
+    const encounterBasedOnQrCode = await this.prisma.patientEncounter.findFirst(
+      {
+        where: {
+          qrCode: code,
+          aidPostId: aidPostId,
+        },
       },
-    });
+    );
 
     if (encounterBasedOnQrCode) {
       return this.prisma.parameterSet.findMany({
@@ -599,16 +639,16 @@ export class EncounterService {
   }
 
   async addParameters(
-      tenantId: number,
-      eventId: number,
-      aidPostId: number,
-      code: string,
-      createParameterSetDto: CreateParameterSetDto,
+    tenantId: number,
+    eventId: number,
+    aidPostId: number,
+    code: string,
+    createParameterSetDto: CreateParameterSetDto,
   ) {
     await this.eventService.getAidPost(eventId, aidPostId, tenantId);
     const encounterBasedOnRfid = await this.prisma.patientEncounter.findFirst({
       where: {
-        rfid: code
+        rfid: code,
       },
     });
 
@@ -627,14 +667,16 @@ export class EncounterService {
               id: encounterBasedOnRfid.id,
             },
           },
-        }
+        },
       });
     }
-    const encounterBasedOnQrCode = await this.prisma.patientEncounter.findFirst({
+    const encounterBasedOnQrCode = await this.prisma.patientEncounter.findFirst(
+      {
         where: {
-            qrCode: code
+          qrCode: code,
         },
-    });
+      },
+    );
 
     if (encounterBasedOnQrCode) {
       return this.prisma.parameterSet.create({
@@ -651,7 +693,7 @@ export class EncounterService {
               id: encounterBasedOnQrCode.id,
             },
           },
-        }
+        },
       });
     }
 
@@ -661,11 +703,11 @@ export class EncounterService {
   }
 
   async addTriage(
-      tenantId: number,
-      eventId: number,
-      aidPostId: number,
-      rfid: string,
-      triageBody: AddTriageDto,
+    tenantId: number,
+    eventId: number,
+    aidPostId: number,
+    rfid: string,
+    triageBody: AddTriageDto,
   ) {
     await this.eventService.getAidPost(eventId, aidPostId, tenantId);
     return this.prisma.patientEncounter.updateMany({
@@ -673,21 +715,23 @@ export class EncounterService {
         rfid: rfid,
         triage: null,
       },
-      data:{
+      data: {
         triage: triageBody.triageCategory,
         chiefComplaint: triageBody.chiefComplaint,
         timeTriage: new Date(triageBody.timeTriage),
-        timeStartTreatment: triageBody.timeStartTreatment ? new Date(triageBody.timeStartTreatment) : undefined,
-      }
+        timeStartTreatment: triageBody.timeStartTreatment
+          ? new Date(triageBody.timeStartTreatment)
+          : undefined,
+      },
     });
   }
 
   async regulation(
-      tenantId: number,
-      eventId: number,
-      aidPostId: number,
-      code: string,
-      regulationPayload: RegulationPayloadDto,
+    tenantId: number,
+    eventId: number,
+    aidPostId: number,
+    code: string,
+    regulationPayload: RegulationPayloadDto,
   ) {
     await this.eventService.getAidPost(eventId, aidPostId, tenantId);
     const encounterBasedOnRfid = await this.prisma.patientEncounter.findFirst({
@@ -698,25 +742,31 @@ export class EncounterService {
     });
 
     if (encounterBasedOnRfid) {
-        return this.prisma.patientEncounter.update({
-            where: {
-            id: encounterBasedOnRfid.id,
-            },
-            data: {
-              methodOut: regulationPayload.methodOut,
-              timeOut: new Date(regulationPayload.timeOut),
-              ambulanceOutId: regulationPayload.ambulanceOutId ? regulationPayload.ambulanceOutId : undefined,
-              hospitalOutId: regulationPayload.hospitalOutId ? regulationPayload.hospitalOutId : undefined,
-            }
-        });
+      return this.prisma.patientEncounter.update({
+        where: {
+          id: encounterBasedOnRfid.id,
+        },
+        data: {
+          methodOut: regulationPayload.methodOut,
+          timeOut: new Date(regulationPayload.timeOut),
+          ambulanceOutId: regulationPayload.ambulanceOutId
+            ? regulationPayload.ambulanceOutId
+            : undefined,
+          hospitalOutId: regulationPayload.hospitalOutId
+            ? regulationPayload.hospitalOutId
+            : undefined,
+        },
+      });
     }
 
-    const encounterBasedOnQrCode = await this.prisma.patientEncounter.findFirst({
-      where: {
-        qrCode: code,
-        timeOut: null,
+    const encounterBasedOnQrCode = await this.prisma.patientEncounter.findFirst(
+      {
+        where: {
+          qrCode: code,
+          timeOut: null,
+        },
       },
-    });
+    );
 
     if (encounterBasedOnQrCode) {
       return this.prisma.patientEncounter.update({
@@ -726,16 +776,19 @@ export class EncounterService {
         data: {
           methodOut: regulationPayload.methodOut,
           timeOut: new Date(regulationPayload.timeOut),
-          ambulanceOutId: regulationPayload.ambulanceOutId ? regulationPayload.ambulanceOutId : undefined,
-          hospitalOutId: regulationPayload.hospitalOutId ? regulationPayload.hospitalOutId : undefined,
-        }
+          ambulanceOutId: regulationPayload.ambulanceOutId
+            ? regulationPayload.ambulanceOutId
+            : undefined,
+          hospitalOutId: regulationPayload.hospitalOutId
+            ? regulationPayload.hospitalOutId
+            : undefined,
+        },
       });
     }
 
     if (!encounterBasedOnQrCode && !encounterBasedOnRfid) {
       throw new NotFoundException('Encounter not found');
     }
-
   }
 
   async uploadImage(
@@ -747,22 +800,24 @@ export class EncounterService {
   ) {
     await this.eventService.getAidPost(eventId, aidPostId, tenantId);
     const encounter = await this.prisma.patientEncounter.findFirst({
-        where: {
-            rfid: rfid,
-            timeOut: null,
-        },
+      where: {
+        rfid: rfid,
+        timeOut: null,
+      },
     });
     const fileExtension = file.originalname.split('.').pop();
     const key = `${tenantId}-${eventId}-${aidPostId}-${encounter.qrCode}-${new Date().getTime()}.${fileExtension}`;
-    const temp = await this.s3.send(new PutObjectCommand({
-      Bucket: process.env.S3_BUCKET_PATIENT_ENCOUNTER_PHOTOS || "",
-      Key: key,
-      Body: file.buffer,
-      ContentType: file.mimetype,
-    }));
+    const temp = await this.s3.send(
+      new PutObjectCommand({
+        Bucket: process.env.S3_BUCKET_PATIENT_ENCOUNTER_PHOTOS || '',
+        Key: key,
+        Body: file.buffer,
+        ContentType: file.mimetype,
+      }),
+    );
 
     if (temp.$metadata.httpStatusCode !== 200) {
-        throw new Error('Failed to upload image');
+      throw new Error('Failed to upload image');
     }
     return this.prisma.patientEncounter.update({
       where: {
@@ -777,10 +832,10 @@ export class EncounterService {
   }
 
   async updateNotes(
-      encounterId: string,
-      tenantId: number,
-      eventId: number,
-      noteDto: { notes: string },
+    encounterId: string,
+    tenantId: number,
+    eventId: number,
+    noteDto: { notes: string },
   ) {
     const aidPosts = await this.eventService.getAidPosts(eventId, +tenantId);
     return this.prisma.patientEncounter.update({
@@ -792,26 +847,33 @@ export class EncounterService {
       },
       data: {
         comments: noteDto.notes,
-      }
+      },
     });
   }
 
   async downloadAttachment(
     tenantId: number,
-    type: "FORM" | "IMAGE" | "MEDICATION_REGISTRATION",
+    type: 'FORM' | 'IMAGE' | 'MEDICATION_REGISTRATION',
     attachmentName: string,
     eventId: number,
     aidPostId: number,
   ) {
     await this.eventService.getAidPost(eventId, aidPostId, tenantId);
 
-    const bucket = type === "FORM" ? process.env.S3_BUCKET_PATIENT_ENCOUNTER_FORMS : type === "IMAGE" ? process.env.S3_BUCKET_PATIENT_ENCOUNTER_PHOTOS : process.env.S3_BUCKET_MEDICATION_STORAGE;
+    const bucket =
+      type === 'FORM'
+        ? process.env.S3_BUCKET_PATIENT_ENCOUNTER_FORMS
+        : type === 'IMAGE'
+          ? process.env.S3_BUCKET_PATIENT_ENCOUNTER_PHOTOS
+          : process.env.S3_BUCKET_MEDICATION_STORAGE;
     const params = {
       Bucket: bucket,
       Key: attachmentName,
     };
     const command = new GetObjectCommand(params);
-    const signedUrl = await getSignedUrl(this.s3, command, { expiresIn: 3 * 60 });
-    return {url: signedUrl};
+    const signedUrl = await getSignedUrl(this.s3, command, {
+      expiresIn: 3 * 60,
+    });
+    return { url: signedUrl };
   }
 }

@@ -1,4 +1,10 @@
-import {IsBoolean, IsEnum, IsNumber, IsOptional, IsString} from 'class-validator';
+import {
+  IsBoolean,
+  IsEnum,
+  IsNumber,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 import { TriageCategory } from '@prisma/client';
 
 export class QueryStatsParamsDto {

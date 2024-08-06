@@ -1,18 +1,12 @@
-import {
-  IsDateString,
-  IsEnum, IsOptional,
-} from 'class-validator';
-import {
-  ChiefComplaint,
-  TriageCategory,
-} from '@prisma/client';
+import { IsDateString, IsEnum, IsOptional } from 'class-validator';
+import { ChiefComplaint, TriageCategory } from '@prisma/client';
 
 export class AddTriageDto {
   @IsEnum(TriageCategory)
-  triageCategory: TriageCategory
+  triageCategory: TriageCategory;
 
   @IsEnum(ChiefComplaint)
-  chiefComplaint: ChiefComplaint
+  chiefComplaint: ChiefComplaint;
 
   @IsDateString()
   @IsOptional()

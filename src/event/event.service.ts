@@ -1,15 +1,18 @@
-import {Inject, Injectable, NotFoundException} from '@nestjs/common';
-import {Prisma, Event, Ambulance, Hospital, AidPost} from '@prisma/client';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma, Event, Ambulance, Hospital, AidPost } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateAmbulanceDto } from './dto/createAmbulance.dto';
 import { CreateHospitalDto } from './dto/createHospital.dto';
 import { CreateAidPostDto } from './dto/createAidPost.dto';
-import {CACHE_MANAGER} from "@nestjs/cache-manager";
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 
 @Injectable()
 export class EventService {
-  constructor(private prisma: PrismaService, @Inject(CACHE_MANAGER) private cacheManager: Cache) {}
+  constructor(
+    private prisma: PrismaService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+  ) {}
   async create(createEventDto: Prisma.EventCreateInput) {
     const newEvent = await this.prisma.event.create({
       data: { ...createEventDto },
@@ -19,7 +22,9 @@ export class EventService {
   }
 
   async findAll(tenantId: number) {
-    const cachedValue = await this.cacheManager.get<Event[]>(`allEvents-tenant-${tenantId}`);
+    const cachedValue = await this.cacheManager.get<Event[]>(
+      `allEvents-tenant-${tenantId}`,
+    );
     if (cachedValue) {
       return cachedValue;
     } else {
@@ -32,7 +37,9 @@ export class EventService {
   }
 
   async findOne(id: number, tenantId: number) {
-    const cachedEvent = await this.cacheManager.get<Event>(`event-tenant-${tenantId}-id-${id}`);
+    const cachedEvent = await this.cacheManager.get<Event>(
+      `event-tenant-${tenantId}-id-${id}`,
+    );
     if (cachedEvent) {
       return cachedEvent;
     } else {
@@ -68,20 +75,27 @@ export class EventService {
   }
 
   async getAmbulances(eventId: number, tenantId: number) {
-    const cachedAmbulances = await this.cacheManager.get<Ambulance[]>(`ambulances-tenant-${tenantId}-event-${eventId}`);
+    const cachedAmbulances = await this.cacheManager.get<Ambulance[]>(
+      `ambulances-tenant-${tenantId}-event-${eventId}`,
+    );
     if (cachedAmbulances) {
       return cachedAmbulances;
     } else {
       const ambulances = await this.prisma.ambulance.findMany({
         where: { eventId },
       });
-      await this.cacheManager.set(`ambulances-tenant-${tenantId}-event-${eventId}`, ambulances);
+      await this.cacheManager.set(
+        `ambulances-tenant-${tenantId}-event-${eventId}`,
+        ambulances,
+      );
       return ambulances;
     }
   }
 
   async getAmbulance(eventId: number, ambulanceId: number, tenantId: number) {
-    const cachedAmbulance = await this.cacheManager.get<Ambulance>(`ambulance-tenant-${tenantId}-event-${eventId}-id-${ambulanceId}`);
+    const cachedAmbulance = await this.cacheManager.get<Ambulance>(
+      `ambulance-tenant-${tenantId}-event-${eventId}-id-${ambulanceId}`,
+    );
     if (cachedAmbulance) {
       return cachedAmbulance;
     } else {
@@ -91,7 +105,10 @@ export class EventService {
       if (!ambulance) {
         throw new NotFoundException('Ambulance not found');
       }
-      await this.cacheManager.set(`ambulance-tenant-${tenantId}-event-${eventId}-id-${ambulanceId}`, ambulance);
+      await this.cacheManager.set(
+        `ambulance-tenant-${tenantId}-event-${eventId}-id-${ambulanceId}`,
+        ambulance,
+      );
       return ambulance;
     }
   }
@@ -137,20 +154,27 @@ export class EventService {
   }
 
   async getHospitals(eventId: number, tenantId: number) {
-    const cachedHospitals = await this.cacheManager.get<Hospital[]>(`hospitals-tenant-${tenantId}-event-${eventId}`);
+    const cachedHospitals = await this.cacheManager.get<Hospital[]>(
+      `hospitals-tenant-${tenantId}-event-${eventId}`,
+    );
     if (cachedHospitals) {
       return cachedHospitals;
     } else {
       const hospitals = await this.prisma.hospital.findMany({
         where: { eventId },
       });
-      await this.cacheManager.set(`hospitals-tenant-${tenantId}-event-${eventId}`, hospitals);
+      await this.cacheManager.set(
+        `hospitals-tenant-${tenantId}-event-${eventId}`,
+        hospitals,
+      );
       return hospitals;
     }
   }
 
   async getHospital(eventId: number, hospitalId: number, tenantId: number) {
-    const cachedHospital = await this.cacheManager.get<Hospital>(`hospital-tenant-${tenantId}-event-${eventId}-id-${hospitalId}`);
+    const cachedHospital = await this.cacheManager.get<Hospital>(
+      `hospital-tenant-${tenantId}-event-${eventId}-id-${hospitalId}`,
+    );
     if (cachedHospital) {
       return cachedHospital;
     } else {
@@ -160,7 +184,10 @@ export class EventService {
       if (!hospital) {
         throw new NotFoundException('Hospital not found');
       }
-      await this.cacheManager.set(`hospital-tenant-${tenantId}-event-${eventId}-id-${hospitalId}`, hospital);
+      await this.cacheManager.set(
+        `hospital-tenant-${tenantId}-event-${eventId}-id-${hospitalId}`,
+        hospital,
+      );
       return hospital;
     }
   }
@@ -171,7 +198,7 @@ export class EventService {
     tenantId: number,
   ) {
     await this.findOne(id, tenantId);
-    const newHospital =  this.prisma.hospital.create({
+    const newHospital = this.prisma.hospital.create({
       data: {
         ...createHospitalDto,
         event: { connect: { id } },
@@ -205,7 +232,9 @@ export class EventService {
   }
 
   async getAidPosts(eventId: number, tenantId: number) {
-    const cachedAidPosts = await this.cacheManager.get<AidPost[]>(`aidposts-tenant-${tenantId}-event-${eventId}`);
+    const cachedAidPosts = await this.cacheManager.get<AidPost[]>(
+      `aidposts-tenant-${tenantId}-event-${eventId}`,
+    );
     if (cachedAidPosts) {
       return cachedAidPosts;
     } else {
@@ -213,25 +242,33 @@ export class EventService {
       const aidPosts = await this.prisma.aidPost.findMany({
         where: { eventId },
       });
-      await this.cacheManager.set(`aidposts-tenant-${tenantId}-event-${eventId}`, aidPosts);
+      await this.cacheManager.set(
+        `aidposts-tenant-${tenantId}-event-${eventId}`,
+        aidPosts,
+      );
       return aidPosts;
     }
   }
 
   async getAidPost(eventId: number, aidPostId: number, tenantId: number) {
-    const cachedAidPost = await this.cacheManager.get<AidPost>(`aidpost-tenant-${tenantId}-event-${eventId}-id-${aidPostId}`);
+    const cachedAidPost = await this.cacheManager.get<AidPost>(
+      `aidpost-tenant-${tenantId}-event-${eventId}-id-${aidPostId}`,
+    );
     if (cachedAidPost) {
       return cachedAidPost;
     } else {
-        await this.findOne(eventId, tenantId);
-        const aidPost = await this.prisma.aidPost.findUnique({
-            where: { id: aidPostId, eventId },
-        });
-        if (!aidPost) {
-            throw new NotFoundException('Aidpost not found');
-        }
-        await this.cacheManager.set(`aidpost-tenant-${tenantId}-event-${eventId}-id-${aidPostId}`, aidPost);
-        return aidPost;
+      await this.findOne(eventId, tenantId);
+      const aidPost = await this.prisma.aidPost.findUnique({
+        where: { id: aidPostId, eventId },
+      });
+      if (!aidPost) {
+        throw new NotFoundException('Aidpost not found');
+      }
+      await this.cacheManager.set(
+        `aidpost-tenant-${tenantId}-event-${eventId}-id-${aidPostId}`,
+        aidPost,
+      );
+      return aidPost;
     }
   }
 

@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { FeedbackController } from './feedback.controller';
 import { FeedbackService } from './feedback.service';
-import {PrismaModule} from "../prisma/prisma.module";
-import {TenantModule} from "../tenant/tenant.module";
+import { PrismaModule } from '../prisma/prisma.module';
+import { TenantModule } from '../tenant/tenant.module';
 
 @Module({
   controllers: [FeedbackController],

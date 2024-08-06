@@ -1,72 +1,78 @@
 import {
-    IsDateString,
-    IsEnum, IsNumber, IsOptional, IsString,
+  IsDateString,
+  IsEnum,
+  IsNumber,
+  IsOptional,
+  IsString,
 } from 'class-validator';
 import {
-    ChiefComplaint, Gender, MethodIn, MethodOut, PatientType,
-    TriageCategory,
+  ChiefComplaint,
+  Gender,
+  MethodIn,
+  MethodOut,
+  PatientType,
+  TriageCategory,
 } from '@prisma/client';
-import {Type} from "class-transformer";
+import { Type } from 'class-transformer';
 
 export class GetEncountersWithFiltersDto {
+  @IsString()
+  @IsOptional()
+  qrCode?: string;
 
-    @IsString()
-    @IsOptional()
-    qrCode?: string;
+  @IsString()
+  @IsOptional()
+  rfid?: string;
 
-    @IsString()
-    @IsOptional()
-    rfid?: string;
+  @IsDateString()
+  @IsOptional()
+  startDate?: string;
 
-    @IsDateString()
-    @IsOptional()
-    startDate?: string;
+  @IsDateString()
+  @IsOptional()
+  endDate?: string;
 
-    @IsDateString()
-    @IsOptional()
-    endDate?: string;
+  @IsEnum(MethodIn)
+  @IsOptional()
+  methodIn?: MethodIn;
 
-    @IsEnum(MethodIn)
-    @IsOptional()
-    methodIn?: MethodIn
+  @IsNumber()
+  @Type(() => Number)
+  @IsOptional()
+  ambulanceInId?: number;
 
-    @IsNumber()
-    @Type(() => Number)
-    @IsOptional()
-    ambulanceInId?: number
+  @IsEnum(Gender)
+  @IsOptional()
+  gender?: Gender;
 
-    @IsEnum(Gender)
-    @IsOptional()
-    gender?: Gender
+  @IsEnum(PatientType)
+  @IsOptional()
+  patientType?: PatientType;
 
-    @IsEnum(PatientType)
-    @IsOptional()
-    patientType?: PatientType
+  @IsEnum(TriageCategory)
+  @IsOptional()
+  triage?: TriageCategory;
 
-    @IsEnum(TriageCategory)
-    @IsOptional()
-    triage?: TriageCategory
+  @IsEnum(ChiefComplaint)
+  @IsOptional()
+  chiefComplaint?: ChiefComplaint;
 
-    @IsEnum(ChiefComplaint)
-    @IsOptional()
-    chiefComplaint?: ChiefComplaint
+  @IsEnum(MethodOut)
+  @IsOptional()
+  methodOut?: MethodOut;
 
-    @IsEnum(MethodOut)
-    @IsOptional()
-    methodOut?: MethodOut
+  @IsNumber()
+  @Type(() => Number)
+  @IsOptional()
+  ambulanceOutId?: number;
 
-    @IsNumber()
-    @Type(() => Number)
-    @IsOptional()
-    ambulanceOutId?: number
+  @IsNumber()
+  @Type(() => Number)
+  @IsOptional()
+  hospitalOutId?: number;
 
-    @IsNumber()
-    @Type(() => Number)
-    @IsOptional()
-    hospitalOutId?: number
-
-    @IsNumber()
-    @Type(() => Number)
-    @IsOptional()
-    aidPostId?: number
+  @IsNumber()
+  @Type(() => Number)
+  @IsOptional()
+  aidPostId?: number;
 }

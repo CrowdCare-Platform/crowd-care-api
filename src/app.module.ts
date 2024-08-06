@@ -6,10 +6,11 @@ import { EventModule } from './event/event.module';
 import { EncounterModule } from './encounter/encounter.module';
 import { TenantModule } from './tenant/tenant.module';
 import { PrismaModule } from './prisma/prisma.module';
-import {ConfigModule} from "@nestjs/config";
-import {CacheModule} from "@nestjs/cache-manager";
+import { ConfigModule } from '@nestjs/config';
+import { CacheModule } from '@nestjs/cache-manager';
 import { MedicationStorageModule } from './medication-storage/medication-storage.module';
 import { FeedbackModule } from './feedback/feedback.module';
+import { UploadModule } from './upload/upload.module';
 
 @Module({
   imports: [
@@ -23,10 +24,11 @@ import { FeedbackModule } from './feedback/feedback.module';
     }),
     CacheModule.register({
       isGlobal: true,
-      ttl: 3600000
+      ttl: 3600000,
     }),
     MedicationStorageModule,
-    FeedbackModule
+    FeedbackModule,
+    UploadModule,
   ],
   controllers: [AppController],
   providers: [AppService],

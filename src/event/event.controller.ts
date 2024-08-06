@@ -7,16 +7,17 @@ import {
   Param,
   Post,
   Put,
-  Req, UseGuards,
+  Req,
+  UseGuards,
 } from '@nestjs/common';
 import { Event as EventModel } from '@prisma/client';
 import { CreateEventDto } from './dto/createEvent.dto';
 import { EventService } from './event.service';
 import { CreateAmbulanceDto } from './dto/createAmbulance.dto';
 import { CreateHospitalDto } from './dto/createHospital.dto';
-import {CreateAidPostDto} from "./dto/createAidPost.dto";
-import {LogtoAuthGuard} from "../auth/auth.guard";
-import {Roles} from "../auth/roles.decorator";
+import { CreateAidPostDto } from './dto/createAidPost.dto';
+import { LogtoAuthGuard } from '../auth/auth.guard';
+import { Roles } from '../auth/roles.decorator';
 
 @Controller('event')
 @UseGuards(LogtoAuthGuard)
@@ -239,10 +240,10 @@ export class EventController {
 
   @Get('/:id/aidPost/:aidPostId')
   @Roles(['ADMIN', 'APP', 'CP-MED', 'CP-EVENT', 'EPD'])
-  async getAidPost (
-      @Req() req,
-      @Param('id') id: number,
-      @Param('aidPostId') aidPostId: number,
+  async getAidPost(
+    @Req() req,
+    @Param('id') id: number,
+    @Param('aidPostId') aidPostId: number,
   ) {
     const tenantId = +req.headers['tenant-id'];
     if (!tenantId || isNaN(tenantId)) {
@@ -254,9 +255,9 @@ export class EventController {
   @Post('/:id/aidPost')
   @Roles(['ADMIN'])
   async createAidPost(
-      @Req() req,
-      @Param('id') id: number,
-      @Body() createAidPostDto: CreateAidPostDto,
+    @Req() req,
+    @Param('id') id: number,
+    @Body() createAidPostDto: CreateAidPostDto,
   ) {
     const tenantId = +req.headers['tenant-id'];
     if (!tenantId || isNaN(tenantId)) {
@@ -268,29 +269,29 @@ export class EventController {
   @Put('/:id/aidPost/:aidPostId')
   @Roles(['ADMIN'])
   async updateAidPost(
-      @Req() req,
-      @Param('id') id: number,
-      @Param('aidPostId') aidPostId: number,
-      @Body() createAidPostDto: CreateAidPostDto,
+    @Req() req,
+    @Param('id') id: number,
+    @Param('aidPostId') aidPostId: number,
+    @Body() createAidPostDto: CreateAidPostDto,
   ) {
     const tenantId = +req.headers['tenant-id'];
     if (!tenantId || isNaN(tenantId)) {
       throw new BadRequestException('Tenant ID is invalid');
     }
     return this.eventService.updateAidPost(
-        id,
-        aidPostId,
-        createAidPostDto,
-        tenantId,
+      id,
+      aidPostId,
+      createAidPostDto,
+      tenantId,
     );
   }
 
   @Delete('/:id/aidPost/:aidPostId')
   @Roles(['ADMIN'])
   async deleteAidPost(
-      @Req() req,
-      @Param('id') id: number,
-      @Param('aidPostId') aidPostId: number,
+    @Req() req,
+    @Param('id') id: number,
+    @Param('aidPostId') aidPostId: number,
   ) {
     const tenantId = +req.headers['tenant-id'];
     if (!tenantId || isNaN(tenantId)) {

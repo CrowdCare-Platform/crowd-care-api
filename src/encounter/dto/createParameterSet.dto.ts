@@ -1,16 +1,10 @@
-import {
-  IsEnum,
-  IsNumber,
-  IsOptional,
-} from 'class-validator';
-import {
-  WAPA,
-} from '@prisma/client';
+import { IsEnum, IsNumber, IsOptional } from 'class-validator';
+import { WAPA } from '@prisma/client';
 
 export class CreateParameterSetDto {
   @IsEnum(WAPA)
   @IsOptional()
-  WAPA?: WAPA
+  WAPA?: WAPA;
 
   @IsNumber()
   @IsOptional()

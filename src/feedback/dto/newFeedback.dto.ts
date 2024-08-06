@@ -1,15 +1,13 @@
-import {
-    IsBoolean, IsOptional, IsString
-} from 'class-validator';
+import { IsBoolean, IsOptional, IsString } from 'class-validator';
 
 export class NewFeedbackDto {
-    @IsString()
-    @IsOptional()
-    name?: string;
+  @IsString()
+  @IsOptional()
+  name?: string;
 
-    @IsBoolean()
-    urgent: boolean;
+  @IsBoolean()
+  urgent: boolean;
 
-    @IsString()
-    description: string;
+  @IsString()
+  description: string;
 }
