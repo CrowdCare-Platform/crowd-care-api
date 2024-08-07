@@ -33,6 +33,7 @@ import {
   TriageCategory,
 } from '@prisma/client';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import {chunkDataByDay} from "../utils/date-functions";
 
 @Injectable()
 export class EncounterService {
@@ -875,5 +876,18 @@ export class EncounterService {
       expiresIn: 3 * 60,
     });
     return { url: signedUrl };
+  }
+
+  async getRawData(tenantId: number, eventId: number) {
+    const aidPosts = await this.eventService.getAidPosts(eventId, tenantId);
+    const res = await this.prisma.patientEncounter.findMany({
+      where: {
+        aidPostId: {
+            in: aidPosts.map((aidPost) => aidPost.id),
+            },
+        },
+      orderBy: { timeIn: 'asc' },
+    });
+      return chunkDataByDay(res);
   }
 }

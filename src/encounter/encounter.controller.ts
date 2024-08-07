@@ -33,6 +33,26 @@ import { PatientEncounter } from '@prisma/client';
 export class EncounterController {
   constructor(private readonly encounterService: EncounterService) {}
 
+  @Get('rawData')
+  @Roles(['CP-EVENT'])
+  async getRawData(
+    @Req() req,
+    @Query('eventId') eventId: string,
+  ) {
+    const tenantId = +req.headers['tenant-id'];
+    if (!tenantId || isNaN(tenantId)) {
+      throw new BadRequestException('Tenant ID is invalid');
+    }
+    if (!eventId || isNaN(+eventId)) {
+      throw new BadRequestException('Event ID is invalid');
+    }
+    return this.encounterService.getRawData(
+      tenantId,
+      +eventId,
+    );
+  }
+
+
   @Post('/updateNotes')
   @Roles(['EPD'])
   async updateNotes(
