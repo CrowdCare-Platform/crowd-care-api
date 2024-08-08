@@ -26,6 +26,12 @@ const load = async () => {
                     to: addMinutes(timeStartTreatment, 120),
                 });
 
+                const methodOut = faker.helpers.arrayElement([
+                    "BACK_TO_FESTIVAL",
+                    "HOME",
+                    "TO_HOSPITAL_DGH"
+                ])
+
                 await prisma.patientEncounter.create({
                     data: {
                         qrCode: "" + j,
@@ -72,11 +78,8 @@ const load = async () => {
                         ]),
                         timeStartTreatment,
                         timeOut,
-                        methodOut: faker.helpers.arrayElement([
-                            "BACK_TO_FESTIVAL",
-                            "OTHER_STATION",
-                            "HOME",
-                        ]),
+                        methodOut,
+                        hospitalOutId: methodOut === "TO_HOSPITAL_DGH" ? faker.helpers.arrayElement([1,2,3]) : null,
                         userId: faker.string.uuid(),
                         aidPostId: faker.helpers.arrayElement([
                             1, 2, 3, 4
