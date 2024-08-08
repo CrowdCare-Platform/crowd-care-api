@@ -46,40 +46,29 @@ const load = async () => {
                             "RED",
                             "YELLOW",
                             "GREEN",
-                            "WHITE",
                         ]),
                         timeTriage,
                         chiefComplaint: faker.helpers.arrayElement([
-                            "ADEMHALING",
-                            "HYPERVENTILATIE",
-                            "ALLERGIE",
-                            "LOKALE_REACTIE",
-                            "ANAFYLAXIE",
-                            "BEWEGINGSSTELSEL",
-                            "VERSTUIKING",
-                            "RADIOGRAFIE",
-                            "BRANDWONDE",
-                            "BEWUSTZIJNSVERLIES",
-                            "FLAUWTE_SYNCOPE",
-                            "EPILEPSIE",
-                            "EIGEN_MEDICATIE",
-                            "HARTKLACHTEN",
-                            "HOOFDPIJN",
                             "HUIDWONDE",
-                            "HECHTING",
+                            "BRANDWONDE",
                             "INSECTENBEET",
-                            "ONTSTEKING",
-                            "INTOXICATIE",
-                            "ALCOHOL",
-                            "DRUGS",
-                            "KEELPIJN",
+                            "HECHTING",
+                            "ALLERGIE",
+                            "ZONNEALLERGIE",
+                            "PIJN",
+                            "HOODPIJN",
+                            "SPIERPIJN",
+                            "MENSTRUATIEPIJN",
+                            "HYPERVENTILATIE",
+                            "HARTKLACHTEN",
                             "MAAG_DARM",
-                            "OOGLETSEL",
-                            "TANDPIJN",
+                            "BOVENSTE_LUCHTWEGEN",
+                            "FLAUWTE",
+                            "INTOXICATIE",
+                            "BEWEGINGSSTELSEL",
+                            "BEELDVORMING",
+                            "OOG",
                             "ANDERE",
-                            "PLEISTER",
-                            "MAANDVERBAND",
-                            "ZONNECREME_AFTERSUN",
                         ]),
                         timeStartTreatment,
                         timeOut,
@@ -90,11 +79,79 @@ const load = async () => {
                         ]),
                         userId: faker.string.uuid(),
                         aidPostId: faker.helpers.arrayElement([
-                            1, 2, 3
+                            1, 2, 3, 4
                         ]),
                     },
                 });
             }
+        // Creating active registrations
+        for (let j = 0; j < faker.number.int({ min: 11, max: 43 }); j++) {
+            console.log("Creating active patientEncounter " + j);
+            const timeIn = faker.date.between({
+                from: "2024-08-15T00:00:00.000Z",
+                to: "2024-08-18T00:00:00.000Z",
+            });
+            const timeTriage = faker.date.between({
+                from: addMinutes(timeIn, 2),
+                to: addMinutes(timeIn, 10),
+            });
+            const timeStartTreatment = faker.date.between({
+                from: addMinutes(timeTriage, 0),
+                to: addMinutes(timeTriage, 20),
+            });
+
+            await prisma.patientEncounter.create({
+                data: {
+                    qrCode: "active_" + j,
+                    rfid: faker.string.uuid(),
+                    timeIn,
+                    methodIn: faker.helpers.arrayElement([
+                        "SELF",
+                        "WITH_SUPPORT",
+                    ]),
+                    gender: faker.helpers.arrayElement(["MALE", "FEMALE", "OTHER"]),
+                    age: faker.number.int({min: 18, max: 60}),
+                    patientType: faker.helpers.arrayElement([
+                        "VISITOR",
+                        "CREW",
+                        "EXTERNAL",
+                    ]),
+                    triage: faker.helpers.arrayElement([
+                        "RED",
+                        "YELLOW",
+                        "GREEN",
+                    ]),
+                    timeTriage,
+                    chiefComplaint: faker.helpers.arrayElement([
+                        "HUIDWONDE",
+                        "BRANDWONDE",
+                        "INSECTENBEET",
+                        "HECHTING",
+                        "ALLERGIE",
+                        "ZONNEALLERGIE",
+                        "PIJN",
+                        "HOODPIJN",
+                        "SPIERPIJN",
+                        "MENSTRUATIEPIJN",
+                        "HYPERVENTILATIE",
+                        "HARTKLACHTEN",
+                        "MAAG_DARM",
+                        "BOVENSTE_LUCHTWEGEN",
+                        "FLAUWTE",
+                        "INTOXICATIE",
+                        "BEWEGINGSSTELSEL",
+                        "BEELDVORMING",
+                        "OOG",
+                        "ANDERE",
+                    ]),
+                    timeStartTreatment,
+                    userId: faker.string.uuid(),
+                    aidPostId: faker.helpers.arrayElement([
+                        1, 2, 3, 4
+                    ]),
+                },
+            });
+        }
     } catch (e) {
         console.error(e);
         process.exit(1);

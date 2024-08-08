@@ -9,10 +9,10 @@ function getChunkStart(date) {
     const month = date.getUTCMonth();
     const day = date.getUTCDate();
 
-    let chunkStart = new Date(Date.UTC(year, month, day, 8, 0, 0));
+    let chunkStart = new Date(Date.UTC(year, month, day, 6, 0, 0));
 
     if (date.getUTCHours() < 8) {
-        chunkStart = new Date(Date.UTC(year, month, day - 1, 8, 0, 0));
+        chunkStart = new Date(Date.UTC(year, month, day - 1, 6, 0, 0));
     }
 
     return chunkStart;

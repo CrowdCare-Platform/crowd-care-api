@@ -30,19 +30,44 @@ const aidPostData = {
     data: [
         {
             id: 1,
-            name: "Hulppost 1",
-            eventId: 1
+            name: "Hulppost Main",
+            eventId: 1,
+            SleepCapacity: 10,
+            T1Capacity: 3,
+            T2Capacity: 2,
+            T3Capacity: 15,
+            waitingRoomCapacity: 20,
         },
         {
             id: 2,
-            name: "Hulppost 2",
-            eventId: 1
+            name: "Hulppost Dance",
+            eventId: 1,
+            SleepCapacity: 10,
+            T1Capacity: 3,
+            T2Capacity: 2,
+            T3Capacity: 15,
+            waitingRoomCapacity: 20,
         },
         {
             id: 3,
-            name: "Hulppost 3",
-            eventId: 1
+            name: "Hulppost Chill",
+            eventId: 1,
+            SleepCapacity: 10,
+            T1Capacity: 3,
+            T2Capacity: 2,
+            T3Capacity: 15,
+            waitingRoomCapacity: 20,
         },
+        {
+            id: 4,
+            name: "Hulppost Relax",
+            eventId: 1,
+            SleepCapacity: 10,
+            T1Capacity: 3,
+            T2Capacity: 2,
+            T3Capacity: 15,
+            waitingRoomCapacity: 20,
+        }
     ],
 };
 
@@ -194,6 +219,7 @@ const load = async () => {
         // cleanup
         console.log("Cleaning up database...");
         await prisma.parameterSet.deleteMany();
+        await prisma.medicationStorage.deleteMany();
         await prisma.patientEncounter.deleteMany();
         await prisma.aidPost.deleteMany();
         await prisma.hospital.deleteMany();
