@@ -41,7 +41,7 @@ export class EventController {
   }
 
   @Get()
-  @Roles(['ADMIN', 'APP', 'CP-MED', 'CP-EVENT', 'EPD'])
+  @Roles(['ADMIN', 'APP', 'CP-MED', 'CP-EVENT', 'EPD', 'UPLOAD'])
   async findAll(@Req() req): Promise<EventModel[]> {
     const tenantId = +req.headers['tenant-id'];
     if (!tenantId || isNaN(tenantId)) {
