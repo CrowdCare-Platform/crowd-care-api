@@ -1,9 +1,7 @@
 import {
-  Body,
   Inject,
   Injectable,
   NotFoundException,
-  Query,
 } from '@nestjs/common';
 import {
   S3Client,
@@ -11,7 +9,7 @@ import {
   GetObjectCommand,
 } from '@aws-sdk/client-s3';
 import { CreatePatientEncounterDto } from './dto/createPatientEncounter.dto';
-import { PatientEncounter as PatientEncounterModel } from '.prisma/client';
+import { PatientEncounter as PatientEncounterModel, Location as LocationModel } from '.prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { EventService } from '../event/event.service';
 import { QuerySearchParamsDto } from './dto/querySearchParams.dto';
@@ -117,6 +115,7 @@ export class EncounterService {
         attachments: createEncounterDto.attachments
           ? createEncounterDto.attachments
           : [],
+        location: LocationModel.WAITING_ROOM
       },
     });
   }
@@ -259,9 +258,21 @@ export class EncounterService {
           triage: async () => {
             return Promise.resolve({
               where: {
-                triage: {
-                  not: TriageCategory.WHITE,
-                },
+                OR: [
+                  {
+                    triage: {
+                      equals: null
+                    }
+                  },
+                  {
+                    triage: {
+                      not: TriageCategory.WHITE
+                    }
+                  }
+                ]
+                // triage: {
+                //   not: TriageCategory.WHITE
+                // },
               },
             });
           },
@@ -575,22 +586,52 @@ export class EncounterService {
   ) {
     await this.eventService.getAidPost(eventId, aidPostId, tenantId);
     if (encounterId) {
-      return this.prisma.patientEncounter.update({
+      const encounter = await this.findOne(tenantId, +encounterId);
+      const newLocation = encounter.triage === TriageCategory.GREEN ? LocationModel.T3 : encounter.triage === TriageCategory.YELLOW ? LocationModel.T2 : LocationModel.T1;
+      await this.prisma.patientEncounter.update({
         where: {
-          id: +encounterId,
+          id: encounter.id,
         },
         data: {
           timeStartTreatment: new Date(),
+          location: newLocation
+        },
+      });
+      return this.prisma.patientEncounterLocationLog.create({
+        data: {
+          toLocation: newLocation,
+          patientEncounter: {
+            connect: {
+              id: encounter.id
+            }
+          },
         },
       });
     } else {
-      return this.prisma.patientEncounter.updateMany({
+      const encounter = await this.prisma.patientEncounter.findFirst({
         where: {
           rfid,
           timeStartTreatment: null,
         },
+      });
+      const newLocation = encounter.triage === TriageCategory.GREEN ? LocationModel.T3 : encounter.triage === TriageCategory.YELLOW ? LocationModel.T2 : LocationModel.T1;
+      await this.prisma.patientEncounter.update({
+        where: {
+          id: encounter.id
+        },
         data: {
           timeStartTreatment: new Date(),
+            location: newLocation
+        },
+      });
+      return this.prisma.patientEncounterLocationLog.create({
+        data: {
+          toLocation: newLocation,
+          patientEncounter: {
+            connect: {
+              id: encounter.id
+            }
+          },
         },
       });
     }
@@ -663,6 +704,7 @@ export class EncounterService {
           temperature: createParameterSetDto.temperature,
           bloodPressureSystolic: createParameterSetDto.bloodPressureSystolic,
           bloodPressureDiastolic: createParameterSetDto.bloodPressureDiastolic,
+          glucoseLevel: createParameterSetDto.glucoseLevel,
           patientEncounter: {
             connect: {
               id: encounterBasedOnRfid.id,
@@ -689,6 +731,7 @@ export class EncounterService {
           temperature: createParameterSetDto.temperature,
           bloodPressureSystolic: createParameterSetDto.bloodPressureSystolic,
           bloodPressureDiastolic: createParameterSetDto.bloodPressureDiastolic,
+          glucoseLevel: createParameterSetDto.glucoseLevel,
           patientEncounter: {
             connect: {
               id: encounterBasedOnQrCode.id,
@@ -711,10 +754,15 @@ export class EncounterService {
     triageBody: AddTriageDto,
   ) {
     await this.eventService.getAidPost(eventId, aidPostId, tenantId);
-    return this.prisma.patientEncounter.updateMany({
+    const encounter = await this.prisma.patientEncounter.findFirst({
+        where: {
+          rfid: rfid,
+          triage: null,
+        }
+    });
+    return this.prisma.patientEncounter.update({
       where: {
-        rfid: rfid,
-        triage: null,
+        id: encounter.id,
       },
       data: {
         triage: triageBody.triageCategory,

@@ -32,6 +32,12 @@ const load = async () => {
                     "TO_HOSPITAL_DGH"
                 ])
 
+                const triage = faker.helpers.arrayElement([
+                        "RED",
+                        "YELLOW",
+                        "GREEN",
+                ]);
+
                 await prisma.patientEncounter.create({
                     data: {
                         qrCode: "" + j,
@@ -48,11 +54,8 @@ const load = async () => {
                             "CREW",
                             "EXTERNAL",
                         ]),
-                        triage: faker.helpers.arrayElement([
-                            "RED",
-                            "YELLOW",
-                            "GREEN",
-                        ]),
+                        triage: triage,
+                        location: triage === "RED" ? "T1" : triage === "YELLOW" ? "T2" : "T3",
                         timeTriage,
                         chiefComplaint: faker.helpers.arrayElement([
                             "HUIDWONDE",
@@ -103,6 +106,12 @@ const load = async () => {
                 to: addMinutes(timeTriage, 20),
             });
 
+            const triage = faker.helpers.arrayElement([
+                "RED",
+                "YELLOW",
+                "GREEN",
+            ]);
+
             await prisma.patientEncounter.create({
                 data: {
                     qrCode: "active_" + j,
@@ -119,11 +128,8 @@ const load = async () => {
                         "CREW",
                         "EXTERNAL",
                     ]),
-                    triage: faker.helpers.arrayElement([
-                        "RED",
-                        "YELLOW",
-                        "GREEN",
-                    ]),
+                    triage: triage,
+                    location: triage === "RED" ? "T1" : triage === "YELLOW" ? "T2" : "T3",
                     timeTriage,
                     chiefComplaint: faker.helpers.arrayElement([
                         "HUIDWONDE",

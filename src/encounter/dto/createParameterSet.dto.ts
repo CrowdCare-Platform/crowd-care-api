@@ -29,4 +29,8 @@ export class CreateParameterSetDto {
   @IsNumber()
   @IsOptional()
   bloodPressureDiastolic?: number;
+
+  @IsNumber()
+  @IsOptional()
+  glucoseLevel?: number;
 }

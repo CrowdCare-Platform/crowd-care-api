@@ -56,12 +56,12 @@ model AidPost {
 }
 
 model PatientEncounter {
-  id                 Int             @id @default(autoincrement())
+  id                 Int                           @id @default(autoincrement())
   qrCode             String?
   rfid               String
   timeIn             DateTime
   methodIn           MethodIn
-  ambulanceIn        Ambulance?      @relation(name: "AmbulanceIn", fields: [ambulanceInId], references: [id])
+  ambulanceIn        Ambulance?                    @relation(name: "AmbulanceIn", fields: [ambulanceInId], references: [id])
   ambulanceInId      Int?
   gender             Gender?
   age                Int?
@@ -72,18 +72,28 @@ model PatientEncounter {
   timeStartTreatment DateTime?
   timeOut            DateTime?
   methodOut          MethodOut?
-  ambulanceOut       Ambulance?      @relation(name: "AmbulanceOut", fields: [ambulanceOutId], references: [id])
+  ambulanceOut       Ambulance?                    @relation(name: "AmbulanceOut", fields: [ambulanceOutId], references: [id])
   ambulanceOutId     Int?
-  hospitalOut        Hospital?       @relation(fields: [hospitalOutId], references: [id])
+  hospitalOut        Hospital?                     @relation(fields: [hospitalOutId], references: [id])
   hospitalOutId      Int?
   userId             String
-  aidPost            AidPost         @relation(fields: [aidPostId], references: [id])
+  aidPost            AidPost                       @relation(fields: [aidPostId], references: [id])
   aidPostId          Int
   comments           String?
   attachments        String[]
-  ParameterSet       ParameterSet[]
+  parameterSet       ParameterSet[]
+  location           Location                      @default(WAITING_ROOM)
+  locationLogs       PatientEncounterLocationLog[]
 
   @@index(fields: [rfid, qrCode])
+}
+
+model PatientEncounterLocationLog {
+  id                 Int              @id @default(autoincrement())
+  patientEncounter   PatientEncounter @relation(fields: [patientEncounterId], references: [id])
+  patientEncounterId Int
+  toLocation         Location
+  time               DateTime         @default(now())
 }
 
 model ParameterSet {
@@ -95,6 +105,7 @@ model ParameterSet {
   respiratoryRate        Int?
   bloodPressureSystolic  Int?
   bloodPressureDiastolic Int?
+  glucoseLevel           Int?
   patientEncounter       PatientEncounter @relation(fields: [patientEncounterId], references: [id])
   patientEncounterId     Int
   createdAt              DateTime         @default(now())
@@ -217,4 +228,12 @@ enum PatientType {
   VISITOR
   CREW
   EXTERNAL
+}
+
+enum Location {
+  WAITING_ROOM
+  T1
+  T2
+  T3
+  SLEEP
 }

@@ -7,6 +7,7 @@ import {
 import { CreateMedicationStorageDto } from './dto/createMedicationStorage.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { EventService } from '../event/event.service';
+import {getSignedUrl} from "@aws-sdk/s3-request-presigner";
 
 @Injectable()
 export class MedicationStorageService {
@@ -84,20 +85,14 @@ export class MedicationStorageService {
       return [];
     }
 
-    const image = await this.s3.send(
-      new GetObjectCommand({
-        Bucket: process.env.S3_BUCKET_MEDICATION_STORAGE || '',
-        Key: res.attachment,
-      }),
-    );
-
-    if (image.$metadata.httpStatusCode !== 200) {
-      throw new Error('Failed fetch attachment');
-    }
-    const base64Body = await image.Body.transformToString('base64');
-    const base64String = 'data:image/jpeg;base64,' + base64Body;
-
-    return [{ ...res, attachmentImage: base64String }];
+    const command = new GetObjectCommand({
+      Bucket: process.env.S3_BUCKET_MEDICATION_STORAGE || '',
+      Key: res.attachment,
+    });
+    const signedUrl = await getSignedUrl(this.s3, command, {
+      expiresIn: 15 * 60,
+    });
+    return [{ ...res, attachmentImage: signedUrl }];
   }
 
   async getMedicationStorageByRfid(
@@ -121,19 +116,14 @@ export class MedicationStorageService {
     let resWithImages: any = [...res];
 
     for (let i = 0; i < resWithImages.length; i++) {
-      const image = await this.s3.send(
-        new GetObjectCommand({
-          Bucket: process.env.S3_BUCKET_MEDICATION_STORAGE || '',
-          Key: resWithImages[i].attachment,
-        }),
-      );
-
-      if (image.$metadata.httpStatusCode !== 200) {
-        throw new Error('Failed fetch attachment');
-      }
-      const base64Body = await image.Body.transformToString('base64');
-      const base64String = 'data:image/jpeg;base64,' + base64Body;
-      resWithImages[i] = { ...resWithImages[i], attachmentImage: base64String };
+      const command = new GetObjectCommand({
+        Bucket: process.env.S3_BUCKET_MEDICATION_STORAGE || '',
+        Key: resWithImages[i].attachment,
+      });
+      const signedUrl = await getSignedUrl(this.s3, command, {
+        expiresIn: 15 * 60,
+      });
+      resWithImages[i] = { ...resWithImages[i], attachmentImage: signedUrl };
     }
 
     return resWithImages;
