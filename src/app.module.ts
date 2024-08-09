@@ -24,7 +24,7 @@ import { UploadModule } from './upload/upload.module';
     }),
     CacheModule.register({
       isGlobal: true,
-      ttl: 3600000,
+      ttl: 600000
     }),
     MedicationStorageModule,
     FeedbackModule,

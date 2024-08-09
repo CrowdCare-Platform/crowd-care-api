@@ -83,6 +83,7 @@ export class EventService {
     } else {
       const ambulances = await this.prisma.ambulance.findMany({
         where: { eventId },
+        orderBy: { order: 'asc' },
       });
       await this.cacheManager.set(
         `ambulances-tenant-${tenantId}-event-${eventId}`,
@@ -162,6 +163,7 @@ export class EventService {
     } else {
       const hospitals = await this.prisma.hospital.findMany({
         where: { eventId },
+        orderBy: { order: 'asc' },
       });
       await this.cacheManager.set(
         `hospitals-tenant-${tenantId}-event-${eventId}`,
