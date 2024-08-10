@@ -6,8 +6,8 @@ const tenantData = {
         {
             id: 1,
             name: "Het Vlaamse Kruis",
-            description: "De grootste hulpverleningsorganisatie van Vlaanderen",
-            logo: "",
+            description: " ",
+            logo: "https://www.kontich.be/imageresizer/9F4C3572B02ADC4A7DCA98AF555477A5/143.jpg?width=544&mode=crop&scale=both",
             url: "hvk",
         }],
 };
@@ -22,6 +22,7 @@ const eventsData = {
             tenantId: 1,
             description:
                 "Het event met de beste medische gegevensregistratie ter wereld",
+            logo: "https://www.musiczine.net/media/k2/items/cache/dffaafef42c17a9c25bd2de0a8941421_XL.jpg?t=20240713_143015",
         },
     ],
 };

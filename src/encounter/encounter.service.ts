@@ -594,7 +594,8 @@ export class EncounterService {
         },
         data: {
           timeStartTreatment: new Date(),
-          location: newLocation
+          location: newLocation,
+          timeLastLocationChange: new Date(),
         },
       });
       return this.prisma.patientEncounterLocationLog.create({
@@ -621,7 +622,8 @@ export class EncounterService {
         },
         data: {
           timeStartTreatment: new Date(),
-            location: newLocation
+          location: newLocation,
+          timeLastLocationChange: new Date(),
         },
       });
       return this.prisma.patientEncounterLocationLog.create({
@@ -760,7 +762,8 @@ export class EncounterService {
           triage: null,
         }
     });
-    return this.prisma.patientEncounter.update({
+    const newLocation = triageBody.timeStartTreatment ? (triageBody.triageCategory === TriageCategory.GREEN ? LocationModel.T3 : triageBody.triageCategory === TriageCategory.YELLOW ? LocationModel.T2 : LocationModel.T1) : undefined;
+    const reg = await this.prisma.patientEncounter.update({
       where: {
         id: encounter.id,
       },
@@ -771,8 +774,24 @@ export class EncounterService {
         timeStartTreatment: triageBody.timeStartTreatment
           ? new Date(triageBody.timeStartTreatment)
           : undefined,
+        location: newLocation,
+        timeLastLocationChange: newLocation ? new Date() : undefined,
       },
     });
+    if (triageBody.timeStartTreatment) {
+      return this.prisma.patientEncounterLocationLog.create({
+        data: {
+          toLocation: newLocation,
+          patientEncounter: {
+            connect: {
+              id: encounter.id
+            }
+          },
+        },
+      });
+    } else {
+      return reg;
+    }
   }
 
   async regulation(
@@ -938,4 +957,38 @@ export class EncounterService {
     });
       return chunkDataByDay(res);
   }
+
+  async changeLocation(
+      tenantId: number,
+      eventId: number,
+      aidPostId: number,
+      rfid: string,
+      newLocation: LocationModel,
+  ) {
+    await this.eventService.getAidPost(eventId, aidPostId, tenantId);
+      const encounter = await this.prisma.patientEncounter.findFirst({
+        where: {
+          rfid,
+          timeOut: null,
+        },
+      });
+      await this.prisma.patientEncounter.update({
+        where: {
+          id: encounter.id
+        },
+        data: {
+          location: newLocation
+        },
+      });
+      return this.prisma.patientEncounterLocationLog.create({
+        data: {
+          toLocation: newLocation,
+          patientEncounter: {
+            connect: {
+              id: encounter.id
+            }
+          },
+        },
+      });
+    }
 }

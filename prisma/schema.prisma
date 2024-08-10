@@ -56,34 +56,35 @@ model AidPost {
 }
 
 model PatientEncounter {
-  id                 Int                           @id @default(autoincrement())
-  qrCode             String?
-  rfid               String
-  timeIn             DateTime
-  methodIn           MethodIn
-  ambulanceIn        Ambulance?                    @relation(name: "AmbulanceIn", fields: [ambulanceInId], references: [id])
-  ambulanceInId      Int?
-  gender             Gender?
-  age                Int?
-  patientType        PatientType?
-  triage             TriageCategory?
-  timeTriage         DateTime?
-  chiefComplaint     ChiefComplaint?
-  timeStartTreatment DateTime?
-  timeOut            DateTime?
-  methodOut          MethodOut?
-  ambulanceOut       Ambulance?                    @relation(name: "AmbulanceOut", fields: [ambulanceOutId], references: [id])
-  ambulanceOutId     Int?
-  hospitalOut        Hospital?                     @relation(fields: [hospitalOutId], references: [id])
-  hospitalOutId      Int?
-  userId             String
-  aidPost            AidPost                       @relation(fields: [aidPostId], references: [id])
-  aidPostId          Int
-  comments           String?
-  attachments        String[]
-  parameterSet       ParameterSet[]
-  location           Location                      @default(WAITING_ROOM)
-  locationLogs       PatientEncounterLocationLog[]
+  id                     Int                           @id @default(autoincrement())
+  qrCode                 String?
+  rfid                   String
+  timeIn                 DateTime
+  methodIn               MethodIn
+  ambulanceIn            Ambulance?                    @relation(name: "AmbulanceIn", fields: [ambulanceInId], references: [id])
+  ambulanceInId          Int?
+  gender                 Gender?
+  age                    Int?
+  patientType            PatientType?
+  triage                 TriageCategory?
+  timeTriage             DateTime?
+  chiefComplaint         ChiefComplaint?
+  timeStartTreatment     DateTime?
+  timeOut                DateTime?
+  methodOut              MethodOut?
+  ambulanceOut           Ambulance?                    @relation(name: "AmbulanceOut", fields: [ambulanceOutId], references: [id])
+  ambulanceOutId         Int?
+  hospitalOut            Hospital?                     @relation(fields: [hospitalOutId], references: [id])
+  hospitalOutId          Int?
+  userId                 String
+  aidPost                AidPost                       @relation(fields: [aidPostId], references: [id])
+  aidPostId              Int
+  comments               String?
+  attachments            String[]
+  parameterSet           ParameterSet[]
+  location               Location                      @default(WAITING_ROOM)
+  timeLastLocationChange DateTime                      @default(now())
+  locationLogs           PatientEncounterLocationLog[]
 
   @@index(fields: [rfid, qrCode])
 }

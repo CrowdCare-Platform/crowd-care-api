@@ -12,7 +12,7 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { PatientEncounter as PatientEncounterModel } from '.prisma/client';
+import { PatientEncounter as PatientEncounterModel, Location as LocationModel } from '.prisma/client';
 import { EncounterService } from './encounter.service';
 import { CreatePatientEncounterDto } from './dto/createPatientEncounter.dto';
 import { QuerySearchParamsDto } from './dto/querySearchParams.dto';
@@ -25,13 +25,45 @@ import { AddTriageDto } from './dto/addTriage.dto';
 import { RegulationPayloadDto } from './dto/regulationPayload.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { GetEncountersWithFiltersDto } from './dto/getEncountersWithFilters.dto';
-import { CreateEventDto } from '../event/dto/createEvent.dto';
-import { PatientEncounter } from '@prisma/client';
 
 @Controller('encounter')
 @UseGuards(LogtoAuthGuard)
 export class EncounterController {
   constructor(private readonly encounterService: EncounterService) {}
+
+  @Post('/changeLocation')
+  @Roles(['APP'])
+  async changeLocation(
+      @Req() req,
+      @Query('eventId') eventId: string,
+      @Query('aidPostId') aidPostId: string,
+      @Query('rfid') rfid: string,
+      @Query('newLocation') newLocation: LocationModel,
+  ) {
+    const tenantId = +req.headers['tenant-id'];
+    if (!tenantId || isNaN(tenantId)) {
+      throw new BadRequestException('Tenant ID is invalid');
+    }
+    if (!eventId || isNaN(+eventId)) {
+      throw new BadRequestException('Event ID is invalid');
+    }
+    if (!aidPostId || isNaN(+aidPostId)) {
+      throw new BadRequestException('AidPost ID is invalid');
+    }
+    if (!rfid) {
+      throw new BadRequestException('No rfid in request');
+    }
+    if (!newLocation) {
+      throw new BadRequestException('No new location in request');
+    }
+    return this.encounterService.changeLocation(
+        tenantId,
+        +eventId,
+        +aidPostId,
+        rfid,
+        newLocation,
+    );
+  }
 
   @Get('rawData')
   @Roles(['CP-EVENT'])
