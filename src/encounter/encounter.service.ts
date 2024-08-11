@@ -335,6 +335,9 @@ export class EncounterService {
       where: {
         id: id,
       },
+      include: {
+        locationLogs: true,
+      }
     });
 
     if (!encounter) {
@@ -1110,7 +1113,8 @@ export class EncounterService {
           id: encounter.id
         },
         data: {
-          location: newLocation
+          location: newLocation,
+          timeLastLocationChange: new Date(),
         },
       });
       return this.prisma.patientEncounterLocationLog.create({
