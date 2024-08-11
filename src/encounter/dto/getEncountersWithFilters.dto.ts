@@ -1,4 +1,5 @@
 import {
+  IsBoolean,
   IsDateString,
   IsEnum,
   IsNumber,
@@ -75,4 +76,8 @@ export class GetEncountersWithFiltersDto {
   @Type(() => Number)
   @IsOptional()
   aidPostId?: number;
+
+  @IsString()
+  @IsOptional()
+  active?: string;
 }

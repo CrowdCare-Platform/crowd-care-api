@@ -124,6 +124,7 @@ export class EncounterService {
   async findWithFilters(
     query: GetEncountersWithFiltersDto,
   ): Promise<PatientEncounterModel[]> {
+    console.log(query);
     const { whereBuilder } =
       await applyFilters<Prisma.PatientEncounterWhereInput>({
         appliedFiltersInput: query,
@@ -254,6 +255,32 @@ export class EncounterService {
               },
             };
           },
+          active: async ({ filter }: { filter: string }) => {
+            if (filter === "true") {
+              return {
+                where: {
+                  timeOut: {
+                    not: null,
+                  },
+                },
+              };
+            } else {
+              return {
+                where: {
+                  OR: [
+                    {
+                      timeOut: null,
+                    },
+                    {
+                      timeOut: {
+                        not: null,
+                      },
+                    },
+                  ],
+                },
+              };
+            }
+          },
         },
         defaultFilters: {
           triage: async () => {
@@ -271,9 +298,6 @@ export class EncounterService {
                     }
                   }
                 ]
-                // triage: {
-                //   not: TriageCategory.WHITE
-                // },
               },
             });
           },
@@ -282,6 +306,7 @@ export class EncounterService {
 
     return this.prisma.patientEncounter.findMany({
       where: whereBuilder,
+      orderBy: { timeIn: 'asc' },
     });
   }
 
