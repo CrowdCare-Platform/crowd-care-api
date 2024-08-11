@@ -124,7 +124,6 @@ export class EncounterService {
   async findWithFilters(
     query: GetEncountersWithFiltersDto,
   ): Promise<PatientEncounterModel[]> {
-    console.log(query);
     const { whereBuilder } =
       await applyFilters<Prisma.PatientEncounterWhereInput>({
         appliedFiltersInput: query,

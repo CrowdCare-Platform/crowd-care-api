@@ -221,6 +221,7 @@ const load = async () => {
         console.log("Cleaning up database...");
         await prisma.parameterSet.deleteMany();
         await prisma.medicationStorage.deleteMany();
+        await prisma.patientEncounterLocationLog.deleteMany();
         await prisma.patientEncounter.deleteMany();
         await prisma.aidPost.deleteMany();
         await prisma.hospital.deleteMany();
