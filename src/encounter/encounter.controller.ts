@@ -25,6 +25,7 @@ import { AddTriageDto } from './dto/addTriage.dto';
 import { RegulationPayloadDto } from './dto/regulationPayload.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { GetEncountersWithFiltersDto } from './dto/getEncountersWithFilters.dto';
+import {RealTimeLocationsOfEventDto} from "./dto/realTimeLocationsOfEventDto";
 
 @Controller('encounter')
 @UseGuards(LogtoAuthGuard)
@@ -285,6 +286,26 @@ export class EncounterController {
     return this.encounterService.getRealTimeStatsOfEvent(
       +query.eventId,
       tenantId,
+    );
+  }
+
+  @Get('/locations')
+  @Roles(['CP-EVENT', 'CP-MED'])
+  async getRealTimeLocationsOfEvent(
+      @Req() req,
+      @Query() query: QueryStatsParamsDto,
+  ): Promise<RealTimeLocationsOfEventDto[]> {
+    const tenantId = +req.headers['tenant-id'];
+    if (isNaN(+query.eventId)) {
+      throw new BadRequestException('Event ID is invalid');
+    }
+    if (!tenantId || isNaN(tenantId)) {
+      throw new BadRequestException('Tenant ID is invalid');
+    }
+
+    return this.encounterService.getRealTimeLocationsOfEvent(
+        +query.eventId,
+        tenantId,
     );
   }
 

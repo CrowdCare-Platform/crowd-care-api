@@ -32,6 +32,7 @@ import {
 } from '@prisma/client';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import {chunkDataByDay} from "../utils/date-functions";
+import {RealTimeLocationsOfEventDto} from "./dto/realTimeLocationsOfEventDto";
 
 @Injectable()
 export class EncounterService {
@@ -523,6 +524,88 @@ export class EncounterService {
     });
   }
 
+  private async calculateRealTimeLocationsOfEvent(
+      eventId: number,
+      tenantId: number,
+  ): Promise<RealTimeLocationsOfEventDto[]> {
+    // Step 1: Get all aid posts of the event
+    const aidPosts = await this.eventService.getAidPosts(eventId, tenantId);
+    const aidPostIds = aidPosts.map((aidPost) => aidPost.id);
+
+    // Step 2: Run all groupBy queries concurrently
+    const [
+      WAITINGPerAidPost,
+      T1PerAidPost,
+      T2PerAidPost,
+      T3PerAidPost,
+      SLEEPPerAidPost,
+    ] = await Promise.all([
+      this.prisma.patientEncounter.groupBy({
+        by: ['aidPostId'],
+        where: {
+          aidPostId: { in: aidPostIds },
+          timeOut: null,
+          location: LocationModel.WAITING_ROOM,
+        },
+        _count: { id: true },
+      }),
+      this.prisma.patientEncounter.groupBy({
+        by: ['aidPostId'],
+        where: {
+          aidPostId: { in: aidPostIds },
+          timeOut: null,
+          location: LocationModel.T1,
+        },
+        _count: { id: true },
+      }),
+      this.prisma.patientEncounter.groupBy({
+        by: ['aidPostId'],
+        where: {
+          aidPostId: { in: aidPostIds },
+          timeOut: null,
+            location: LocationModel.T2,
+        },
+        _count: { id: true },
+      }),
+      this.prisma.patientEncounter.groupBy({
+        by: ['aidPostId'],
+        where: {
+          aidPostId: { in: aidPostIds },
+          timeOut: null,
+            location: LocationModel.T3,
+        },
+        _count: { id: true },
+      }),
+      this.prisma.patientEncounter.groupBy({
+        by: ['aidPostId'],
+        where: {
+          aidPostId: { in: aidPostIds },
+          timeOut: null,
+            location: LocationModel.SLEEP,
+        },
+        _count: { id: true },
+      })
+    ]);
+
+    // Step 3: Combine results
+    return aidPosts.map((aidPost) => {
+      const WAITING = WAITINGPerAidPost.find((encounter) => encounter.aidPostId === aidPost.id);
+      const T1 = T1PerAidPost.find((encounter) => encounter.aidPostId === aidPost.id);
+      const T2 = T2PerAidPost.find((encounter) => encounter.aidPostId === aidPost.id);
+      const T3 = T3PerAidPost.find((encounter) => encounter.aidPostId === aidPost.id);
+      const SLEEP = SLEEPPerAidPost.find((encounter) => encounter.aidPostId === aidPost.id);
+
+      return {
+        aidPostId: aidPost.id,
+        WAITING: WAITING ? WAITING._count.id : 0,
+        T1: T1 ? T1._count.id : 0,
+        T2: T2 ? T2._count.id : 0,
+        T3: T3 ? T3._count.id : 0,
+        SLEEP: SLEEP ? SLEEP._count.id : 0
+      };
+    });
+  }
+
   async getRealTimeStatsOfEvent(
     eventId: number,
     tenantId: number,
@@ -540,6 +623,26 @@ export class EncounterService {
         60000,
       );
       return stats;
+    }
+  }
+
+  async getRealTimeLocationsOfEvent(
+      eventId: number,
+      tenantId: number,
+  ): Promise<RealTimeLocationsOfEventDto[]> {
+    const cachedValue = await this.cacheManager.get<RealTimeLocationsOfEventDto[]>(
+        `realTimeLocationsOfEvent-${eventId}-${tenantId}`,
+    );
+    if (cachedValue) {
+      return cachedValue;
+    } else {
+      const locations = await this.calculateRealTimeLocationsOfEvent(eventId, tenantId);
+      await this.cacheManager.set(
+          `realTimeLocationsOfEvent-${eventId}-${tenantId}`,
+          locations,
+          60000,
+      );
+      return locations;
     }
   }
 
@@ -951,8 +1054,14 @@ export class EncounterService {
       where: {
         aidPostId: {
             in: aidPosts.map((aidPost) => aidPost.id),
-            },
         },
+        timeOut: {
+            not: null,
+        },
+        triage: {
+            not: null
+        }
+      },
       orderBy: { timeIn: 'asc' },
     });
       return chunkDataByDay(res);

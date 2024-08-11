@@ -11,7 +11,7 @@ function getChunkStart(date) {
 
     let chunkStart = new Date(Date.UTC(year, month, day, 6, 0, 0));
 
-    if (date.getUTCHours() < 8) {
+    if (date.getUTCHours() < 6) {
         chunkStart = new Date(Date.UTC(year, month, day - 1, 6, 0, 0));
     }
 
