@@ -150,4 +150,16 @@ export class MedicationStorageService {
       },
     });
   }
+
+  async getAmountOfStorage(tenantId: number, eventId: number) {
+    const aidPostsOfEvent = await this.eventService.getAidPosts(eventId, tenantId);
+    const aidPostIds = aidPostsOfEvent.map((a) => a.id);
+    return this.prisma.medicationStorage.count({
+      where: {
+        aidPostId: {
+            in: aidPostIds,
+        },
+      },
+    });
+  }
 }

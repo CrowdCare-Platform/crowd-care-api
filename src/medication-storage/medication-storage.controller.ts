@@ -25,6 +25,19 @@ export class MedicationStorageController {
     private readonly medicationStorageService: MedicationStorageService,
   ) {}
 
+  @Get('/amount/:eventId')
+  @Roles(['CP-MED'])
+  async getAmountOfStorage(@Req() req, @Param('eventId') eventId: string) {
+    const tenantId = +req.headers['tenant-id'];
+    if (!tenantId || isNaN(tenantId)) {
+      throw new BadRequestException('Tenant ID is invalid');
+    }
+    if (!eventId || isNaN(+eventId)) {
+      throw new BadRequestException('Event ID is invalid');
+    }
+    return this.medicationStorageService.getAmountOfStorage(tenantId, +eventId);
+  }
+
   @Post()
   @Roles(['APP'])
   @UseInterceptors(FileInterceptor('file'))

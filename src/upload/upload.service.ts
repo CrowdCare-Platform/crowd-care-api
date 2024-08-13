@@ -70,8 +70,6 @@ export class UploadService {
     });
     const pdfBytes = await pdfDoc.save();
     const pdfBuffer = Buffer.from(pdfBytes);
-    // const newFilePath = `${path.basename('../export', '.pdf')}-result.pdf`;
-    // fs.writeFileSync(newFilePath, pdfBytes);
 
 
     // 4. Save file to S3

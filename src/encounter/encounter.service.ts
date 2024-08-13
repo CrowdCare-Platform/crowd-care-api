@@ -287,20 +287,21 @@ export class EncounterService {
                   {
                     triage: {
                       equals: null
-                    }
+                    },
+                    deleted: false
                   },
                   {
                     triage: {
                       not: TriageCategory.WHITE
-                    }
+                    },
+                    deleted: false
                   }
-                ]
+                ],
               },
             });
           },
         },
       });
-
     return this.prisma.patientEncounter.findMany({
       where: whereBuilder,
       orderBy: { timeIn: 'asc' },
@@ -325,6 +326,7 @@ export class EncounterService {
         rfid: query.rfid ? query.rfid : undefined,
         qrCode: query.qrCode ? query.qrCode : undefined,
         triage: query.triage ? query.triage : undefined,
+        deleted: false,
       },
       orderBy: { timeIn: 'asc' },
     });
@@ -334,6 +336,7 @@ export class EncounterService {
     const encounter = await this.prisma.patientEncounter.findUnique({
       where: {
         id: id,
+        deleted: false,
       },
       include: {
         locationLogs: true,
@@ -360,6 +363,7 @@ export class EncounterService {
         where: {
           rfid: rfid,
           timeOut: null,
+          deleted: false,
         },
       });
       return encounter;
@@ -368,6 +372,7 @@ export class EncounterService {
         where: {
           qrCode: qrCode,
           timeOut: null,
+            deleted: false,
         },
       });
       return encounter;
@@ -467,6 +472,7 @@ export class EncounterService {
           aidPostId: { in: aidPostIds },
           timeOut: null,
           triage: 'RED',
+          deleted: false,
         },
         _count: { id: true },
       }),
@@ -476,6 +482,7 @@ export class EncounterService {
           aidPostId: { in: aidPostIds },
           timeOut: null,
           triage: 'YELLOW',
+          deleted: false,
         },
         _count: { id: true },
       }),
@@ -485,6 +492,7 @@ export class EncounterService {
           aidPostId: { in: aidPostIds },
           timeOut: null,
           triage: 'GREEN',
+          deleted: false,
         },
         _count: { id: true },
       }),
@@ -494,6 +502,7 @@ export class EncounterService {
           aidPostId: { in: aidPostIds },
           timeOut: null,
           triage: 'WHITE',
+          deleted: false,
         },
         _count: { id: true },
       }),
@@ -503,6 +512,7 @@ export class EncounterService {
           aidPostId: { in: aidPostIds },
           timeOut: null,
           triage: null,
+          deleted: false,
         },
         _count: { id: true },
       }),
@@ -511,6 +521,7 @@ export class EncounterService {
         where: {
           aidPostId: { in: aidPostIds },
           timeStartTreatment: null,
+          deleted: false,
         },
         _count: { id: true },
       }),
@@ -573,6 +584,7 @@ export class EncounterService {
           aidPostId: { in: aidPostIds },
           timeOut: null,
           location: LocationModel.WAITING_ROOM,
+          deleted: false,
         },
         _count: { id: true },
       }),
@@ -582,6 +594,7 @@ export class EncounterService {
           aidPostId: { in: aidPostIds },
           timeOut: null,
           location: LocationModel.T1,
+          deleted: false,
         },
         _count: { id: true },
       }),
@@ -590,7 +603,8 @@ export class EncounterService {
         where: {
           aidPostId: { in: aidPostIds },
           timeOut: null,
-            location: LocationModel.T2,
+          location: LocationModel.T2,
+          deleted: false,
         },
         _count: { id: true },
       }),
@@ -599,7 +613,8 @@ export class EncounterService {
         where: {
           aidPostId: { in: aidPostIds },
           timeOut: null,
-            location: LocationModel.T3,
+          location: LocationModel.T3,
+          deleted: false,
         },
         _count: { id: true },
       }),
@@ -608,7 +623,8 @@ export class EncounterService {
         where: {
           aidPostId: { in: aidPostIds },
           timeOut: null,
-            location: LocationModel.SLEEP,
+          location: LocationModel.SLEEP,
+          deleted: false,
         },
         _count: { id: true },
       })
@@ -683,6 +699,7 @@ export class EncounterService {
       where: {
         aidPostId: aidPostId,
         timeOut: null,
+        deleted: false,
       },
       orderBy: { timeIn: 'asc' },
     });
@@ -703,6 +720,7 @@ export class EncounterService {
         aidPostId: {
           in: aidPostsOfEvent.map((aidPost) => aidPost.id),
         },
+        deleted: false,
       },
     });
   }
@@ -1087,7 +1105,8 @@ export class EncounterService {
         },
         triage: {
             not: null
-        }
+        },
+        deleted: false,
       },
       orderBy: { timeIn: 'asc' },
     });
@@ -1125,6 +1144,19 @@ export class EncounterService {
               id: encounter.id
             }
           },
+        },
+      });
+    }
+
+    async deleteRegistration(tenantId: number, eventId: number, aidPostId: number, encounterId: number) {
+      console.log('deleteRegistration');
+      await this.eventService.getAidPost(eventId, aidPostId, tenantId);
+      return this.prisma.patientEncounter.update({
+        where: {
+          id: encounterId,
+        },
+        data: {
+          deleted: true,
         },
       });
     }

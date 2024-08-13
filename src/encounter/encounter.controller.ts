@@ -1,7 +1,7 @@
 import {
   BadRequestException,
   Body,
-  Controller,
+  Controller, Delete,
   Get,
   Param,
   Post,
@@ -31,6 +31,33 @@ import {RealTimeLocationsOfEventDto} from "./dto/realTimeLocationsOfEventDto";
 @UseGuards(LogtoAuthGuard)
 export class EncounterController {
   constructor(private readonly encounterService: EncounterService) {}
+
+  @Delete(':id')
+  @Roles(['ADMIN'])
+  async deleteRegistration(
+    @Req() req,
+    @Param('id') encounterId: number,
+    @Query('eventId') eventId: number,
+    @Query('aidPostId') aidPostId: number,
+  ) {
+    console.log('deleteRegistration A');
+
+    const tenantId = +req.headers['tenant-id'];
+    if (!tenantId || isNaN(tenantId)) {
+      throw new BadRequestException('Tenant ID is invalid');
+    }
+    if (!encounterId || isNaN(encounterId)) {
+      throw new BadRequestException('Encounter ID is invalid');
+    }
+    if (!eventId || isNaN(eventId)) {
+      throw new BadRequestException('Event ID is invalid');
+    }
+    if (!aidPostId || isNaN(aidPostId)) {
+      throw new BadRequestException('AidPost ID is invalid');
+    }
+    console.log('deleteRegistration B');
+    return this.encounterService.deleteRegistration(tenantId, eventId, aidPostId, encounterId);
+  }
 
   @Post('/changeLocation')
   @Roles(['APP'])
