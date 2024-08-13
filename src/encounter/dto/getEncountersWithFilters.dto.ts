@@ -80,4 +80,14 @@ export class GetEncountersWithFiltersDto {
   @IsString()
   @IsOptional()
   active?: string;
+
+  @IsNumber()
+  @Type(() => Number)
+  @IsOptional()
+  skip?: number;
+
+  @IsNumber()
+  @Type(() => Number)
+  @IsOptional()
+  take?: number;
 }

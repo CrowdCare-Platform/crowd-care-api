@@ -304,6 +304,8 @@ export class EncounterService {
     return this.prisma.patientEncounter.findMany({
       where: whereBuilder,
       orderBy: { timeIn: 'asc' },
+      skip: query.skip,
+      take: query.take,
     });
   }
 
