@@ -45,7 +45,6 @@ export class LogtoAuthGuard implements CanActivate {
   private async verifyAuthFromRequest(request: Request) {
     const token = this.extractBearerTokenFromHeaders(request);
     if (!this.discoveryCache) {
-      console.log('Fetching discovery');
       this.discoveryCache = await this.fetchDiscovery();
     }
 

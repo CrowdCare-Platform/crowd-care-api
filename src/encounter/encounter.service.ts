@@ -258,9 +258,7 @@ export class EncounterService {
             if (filter === "true") {
               return {
                 where: {
-                  timeOut: {
-                    not: null,
-                  },
+                  timeOut: null
                 },
               };
             } else {

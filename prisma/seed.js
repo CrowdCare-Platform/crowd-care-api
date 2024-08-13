@@ -7,7 +7,7 @@ const load = async () => {
     try {
             console.log("Creating patientEncounters...");
             // create patientEncounters for each event
-            for (let j = 0; j < faker.number.int({ min: 143, max: 298 }); j++) {
+            for (let j = 0; j < faker.number.int({ min: 5100, max: 6000 }); j++) {
                 console.log("Creating patientEncounter " + j);
                 const timeIn = faker.date.between({
                     from: "2024-08-15T00:00:00.000Z",

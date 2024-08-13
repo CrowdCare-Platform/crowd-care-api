@@ -7,9 +7,9 @@ const tenantData = {
             id: 1,
             name: "Het Vlaamse Kruis",
             description: " ",
-            logo: "https://www.kontich.be/imageresizer/9F4C3572B02ADC4A7DCA98AF555477A5/143.jpg?width=544&mode=crop&scale=both",
+            logo: "https://crowdcare.be/hvk.jpg",
             url: "hvk",
-        }],
+        },],
 };
 
 const eventsData = {
@@ -22,7 +22,7 @@ const eventsData = {
             tenantId: 1,
             description:
                 "Het event met de beste medische gegevensregistratie ter wereld",
-            logo: "https://www.musiczine.net/media/k2/items/cache/dffaafef42c17a9c25bd2de0a8941421_XL.jpg?t=20240713_143015",
+            logo: "https://crowdcare.be/pkp2024.jpg",
         },
     ],
 };
@@ -217,7 +217,7 @@ const hospitalData = {
 
 const load = async () => {
     try {
-        // cleanup
+        // Cleanup
         console.log("Cleaning up database...");
         await prisma.parameterSet.deleteMany();
         await prisma.medicationStorage.deleteMany();
@@ -229,7 +229,21 @@ const load = async () => {
         await prisma.event.deleteMany();
         await prisma.tenant.deleteMany();
 
-        // creating new entries
+        // Resetting sequences
+        console.log("Resetting sequences...");
+        await prisma.$executeRaw`ALTER SEQUENCE "PatientEncounter_id_seq" RESTART WITH 1`;
+        await prisma.$executeRaw`ALTER SEQUENCE "AidPost_id_seq" RESTART WITH 1`;
+        await prisma.$executeRaw`ALTER SEQUENCE "Hospital_id_seq" RESTART WITH 1`;
+        await prisma.$executeRaw`ALTER SEQUENCE "Ambulance_id_seq" RESTART WITH 1`;
+        await prisma.$executeRaw`ALTER SEQUENCE "Event_id_seq" RESTART WITH 1`;
+        await prisma.$executeRaw`ALTER SEQUENCE "Tenant_id_seq" RESTART WITH 1`;
+        await prisma.$executeRaw`ALTER SEQUENCE "Feedback_id_seq" RESTART WITH 1`;
+        await prisma.$executeRaw`ALTER SEQUENCE "MedicationStorage_id_seq" RESTART WITH 1`;
+        await prisma.$executeRaw`ALTER SEQUENCE "ParameterSet_id_seq" RESTART WITH 1`;
+        await prisma.$executeRaw`ALTER SEQUENCE "PatientEncounterLocationLog_id_seq" RESTART WITH 1`;
+
+
+        // Creating new entries
         console.log("Creating new entries...");
         await prisma.tenant.createMany(tenantData);
         console.log("Tenants created!");
