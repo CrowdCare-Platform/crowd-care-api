@@ -64,7 +64,7 @@ export class UploadService {
     const firstPage = pdfDoc.getPages()[0];
     firstPage.drawImage(img, {
       x: 0,
-      y: 570,
+      y: 575,
       width: firstPage.getWidth(),
       height: 90,
     });
