@@ -198,6 +198,7 @@ const load = async () => {
         await prisma.aidPost.deleteMany();
         await prisma.hospital.deleteMany();
         await prisma.ambulance.deleteMany();
+        await prisma.feedback.deleteMany();
         await prisma.event.deleteMany();
         await prisma.tenant.deleteMany();
 
