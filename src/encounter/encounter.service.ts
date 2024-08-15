@@ -280,23 +280,10 @@ export class EncounterService {
           },
         },
         defaultFilters: {
-          triage: async () => {
+          deleted: async () => {
             return Promise.resolve({
               where: {
-                OR: [
-                  {
-                    triage: {
-                      equals: null
-                    },
-                    deleted: false
-                  },
-                  {
-                    triage: {
-                      not: TriageCategory.WHITE
-                    },
-                    deleted: false
-                  }
-                ],
+                deleted: false
               },
             });
           },
