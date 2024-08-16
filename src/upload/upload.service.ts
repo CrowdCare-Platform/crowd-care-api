@@ -39,6 +39,7 @@ export class UploadService {
     const code = jsQR(Uint8ClampedArray.from(png.data), png.width, png.height);
     const qrCodeText = code?.data;
 
+
     if (!qrCodeText) {
       throw new BadRequestException(
         'Er werd geen QR-code gevonden op de eerste pagina van het document.',
@@ -54,7 +55,20 @@ export class UploadService {
     });
 
     if (!encounter) {
-        throw new BadRequestException(`Er werd geen registratie gevonden waar fiche ${qrCodeText} aan gekoppeld is.`);
+        const fileExtension = file.originalname.split('.').pop();
+        const key = `verzorgingsfiche-${tenantId}-${eventId}-${new Date().getTime()}.${fileExtension}`;
+        const temp = await this.s3.send(new PutObjectCommand({
+            Bucket: process.env.S3_BUCKET_PATIENT_ENCOUNTER_FORMS_ERRORS || "",
+            Key: key,
+            Body: file.buffer,
+            ContentType: file.mimetype,
+        }));
+
+        if (temp.$metadata.httpStatusCode !== 200) {
+            throw new Error(`Er werd geen registratie gevonden waar fiche ${qrCodeText} aan gekoppeld is en de fiche kan niet automatisch bewaard worden! Rapporteer deze fiche aan een administrator!`);
+        }
+
+        throw new BadRequestException(`Er werd geen registratie gevonden waar fiche ${qrCodeText} aan gekoppeld is. De fiche is wel bewaard en gerapporteerd aan een administrator!`);
     }
 
     // 3. Obfuscate identification data with a black rectangle
