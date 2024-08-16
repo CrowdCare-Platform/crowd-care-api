@@ -49,12 +49,13 @@ export class UploadService {
     const encounter = await this.prismaService.patientEncounter.findFirst({
       where: {
         qrCode: qrCodeText,
+          deleted: false
       },
     });
 
-    // if (!encounter) {
-    //     throw new BadRequestException(`Er werd geen registratie gevonden waar fiche ${qrCodeText} aan gekoppeld is.`);
-    // }
+    if (!encounter) {
+        throw new BadRequestException(`Er werd geen registratie gevonden waar fiche ${qrCodeText} aan gekoppeld is.`);
+    }
 
     // 3. Obfuscate identification data with a black rectangle
     const pdfDoc = await PDFDocument.load(file.buffer);
@@ -70,14 +71,6 @@ export class UploadService {
     });
     const pdfBytes = await pdfDoc.save();
     const pdfBuffer = Buffer.from(pdfBytes);
-
-    console.log(pdfBytes);
-
-    fs.writeFileSync(path.resolve(__dirname, '../public/verzorgingsfiche.pdf'), pdfBuffer);
-      return {
-          ok: true,
-      };
-
 
     // 4. Save file to S3
     const fileExtension = file.originalname.split('.').pop();

@@ -40,7 +40,6 @@ export class EncounterController {
     @Query('eventId') eventId: number,
     @Query('aidPostId') aidPostId: number,
   ) {
-    console.log('deleteRegistration A');
 
     const tenantId = +req.headers['tenant-id'];
     if (!tenantId || isNaN(tenantId)) {
@@ -55,7 +54,6 @@ export class EncounterController {
     if (!aidPostId || isNaN(aidPostId)) {
       throw new BadRequestException('AidPost ID is invalid');
     }
-    console.log('deleteRegistration B');
     return this.encounterService.deleteRegistration(tenantId, eventId, aidPostId, encounterId);
   }
 

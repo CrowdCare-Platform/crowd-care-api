@@ -1136,7 +1136,6 @@ export class EncounterService {
     }
 
     async deleteRegistration(tenantId: number, eventId: number, aidPostId: number, encounterId: number) {
-      console.log('deleteRegistration');
       await this.eventService.getAidPost(eventId, aidPostId, tenantId);
       return this.prisma.patientEncounter.update({
         where: {
