@@ -52,6 +52,7 @@ model AidPost {
   T2Capacity          Int                 @default(0)
   T1Capacity          Int                 @default(0)
   sleepCapacity       Int                 @default(0)
+  psyCapacity         Int                 @default(0)
   MedicationStorage   MedicationStorage[]
 }
 
