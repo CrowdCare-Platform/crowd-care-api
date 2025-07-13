@@ -5,4 +5,5 @@ export interface RealTimeLocationsOfEventDto {
   T2: number;
   T1: number;
   SLEEP: number;
+  PSY: number;
 }

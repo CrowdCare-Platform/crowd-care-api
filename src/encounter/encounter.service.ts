@@ -563,6 +563,7 @@ export class EncounterService {
       T2PerAidPost,
       T3PerAidPost,
       SLEEPPerAidPost,
+      PSYPerAidPost,
     ] = await Promise.all([
       this.prisma.patientEncounter.groupBy({
         by: ['aidPostId'],
@@ -614,6 +615,16 @@ export class EncounterService {
         },
         _count: { id: true },
       }),
+      this.prisma.patientEncounter.groupBy({
+        by: ['aidPostId'],
+        where: {
+          aidPostId: { in: aidPostIds },
+          timeOut: null,
+          location: LocationModel.PSY,
+          deleted: false,
+        },
+        _count: { id: true },
+      }),
     ]);
 
     // Step 3: Combine results
@@ -633,6 +644,9 @@ export class EncounterService {
       const SLEEP = SLEEPPerAidPost.find(
         (encounter) => encounter.aidPostId === aidPost.id,
       );
+      const PSY = PSYPerAidPost.find(
+        (encounter) => encounter.aidPostId === aidPost.id,
+      );
 
       return {
         aidPostId: aidPost.id,
@@ -641,6 +655,7 @@ export class EncounterService {
         T2: T2 ? T2._count.id : 0,
         T3: T3 ? T3._count.id : 0,
         SLEEP: SLEEP ? SLEEP._count.id : 0,
+        PSY: PSY ? PSY._count.id : 0,
       };
     });
   }
