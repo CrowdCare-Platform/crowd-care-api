@@ -5,7 +5,6 @@ import {
   Post,
   Query,
   Req,
-  UploadedFile,
   UseGuards,
 } from '@nestjs/common';
 import { LogtoAuthGuard } from '../auth/auth.guard';

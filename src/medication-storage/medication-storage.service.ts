@@ -7,7 +7,7 @@ import {
 import { CreateMedicationStorageDto } from './dto/createMedicationStorage.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { EventService } from '../event/event.service';
-import {getSignedUrl} from "@aws-sdk/s3-request-presigner";
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 @Injectable()
 export class MedicationStorageService {
@@ -103,7 +103,7 @@ export class MedicationStorageService {
     const aidPostsOfEvent = await this.eventService
       .getAidPosts(eventId, tenantId)
       .then((res) => res.map((a) => a.id));
-    let res = await this.prisma.medicationStorage.findMany({
+    const res = await this.prisma.medicationStorage.findMany({
       where: {
         rfid,
         aidPostId: {
@@ -113,7 +113,7 @@ export class MedicationStorageService {
       },
     });
 
-    let resWithImages: any = [...res];
+    const resWithImages: any = [...res];
 
     for (let i = 0; i < resWithImages.length; i++) {
       const command = new GetObjectCommand({
@@ -152,12 +152,15 @@ export class MedicationStorageService {
   }
 
   async getAmountOfStorage(tenantId: number, eventId: number) {
-    const aidPostsOfEvent = await this.eventService.getAidPosts(eventId, tenantId);
+    const aidPostsOfEvent = await this.eventService.getAidPosts(
+      eventId,
+      tenantId,
+    );
     const aidPostIds = aidPostsOfEvent.map((a) => a.id);
     return this.prisma.medicationStorage.count({
       where: {
         aidPostId: {
-            in: aidPostIds,
+          in: aidPostIds,
         },
       },
     });

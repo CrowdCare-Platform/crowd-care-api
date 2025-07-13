@@ -39,7 +39,6 @@ export class UploadService {
     const code = jsQR(Uint8ClampedArray.from(png.data), png.width, png.height);
     const qrCodeText = code?.data;
 
-
     if (!qrCodeText) {
       throw new BadRequestException(
         'Er werd geen QR-code gevonden op de eerste pagina van het document.',
@@ -50,25 +49,31 @@ export class UploadService {
     const encounter = await this.prismaService.patientEncounter.findFirst({
       where: {
         qrCode: qrCodeText,
-          deleted: false
+        deleted: false,
       },
     });
 
     if (!encounter) {
-        const fileExtension = file.originalname.split('.').pop();
-        const key = `verzorgingsfiche-${tenantId}-${eventId}-${new Date().getTime()}.${fileExtension}`;
-        const temp = await this.s3.send(new PutObjectCommand({
-            Bucket: process.env.S3_BUCKET_PATIENT_ENCOUNTER_FORMS_ERRORS || "",
-            Key: key,
-            Body: file.buffer,
-            ContentType: file.mimetype,
-        }));
+      const fileExtension = file.originalname.split('.').pop();
+      const key = `verzorgingsfiche-${tenantId}-${eventId}-${new Date().getTime()}.${fileExtension}`;
+      const temp = await this.s3.send(
+        new PutObjectCommand({
+          Bucket: process.env.S3_BUCKET_PATIENT_ENCOUNTER_FORMS_ERRORS || '',
+          Key: key,
+          Body: file.buffer,
+          ContentType: file.mimetype,
+        }),
+      );
 
-        if (temp.$metadata.httpStatusCode !== 200) {
-            throw new Error(`Er werd geen registratie gevonden waar fiche ${qrCodeText} aan gekoppeld is en de fiche kan niet automatisch bewaard worden! Rapporteer deze fiche aan een administrator!`);
-        }
+      if (temp.$metadata.httpStatusCode !== 200) {
+        throw new Error(
+          `Er werd geen registratie gevonden waar fiche ${qrCodeText} aan gekoppeld is en de fiche kan niet automatisch bewaard worden! Rapporteer deze fiche aan een administrator!`,
+        );
+      }
 
-        throw new BadRequestException(`Er werd geen registratie gevonden waar fiche ${qrCodeText} aan gekoppeld is. De fiche is wel bewaard en gerapporteerd aan een administrator!`);
+      throw new BadRequestException(
+        `Er werd geen registratie gevonden waar fiche ${qrCodeText} aan gekoppeld is. De fiche is wel bewaard en gerapporteerd aan een administrator!`,
+      );
     }
 
     // 3. Obfuscate identification data with a black rectangle
@@ -89,41 +94,44 @@ export class UploadService {
     // 4. Save file to S3
     const fileExtension = file.originalname.split('.').pop();
     const key = `verzorgingsfiche-${tenantId}-${eventId}-${new Date().getTime()}.${fileExtension}`;
-    const temp = await this.s3.send(new PutObjectCommand({
-        Bucket: process.env.S3_BUCKET_PATIENT_ENCOUNTER_FORMS || "",
+    const temp = await this.s3.send(
+      new PutObjectCommand({
+        Bucket: process.env.S3_BUCKET_PATIENT_ENCOUNTER_FORMS || '',
         Key: key,
         Body: pdfBuffer,
         ContentType: file.mimetype,
-    }));
+      }),
+    );
 
     if (temp.$metadata.httpStatusCode !== 200) {
-        throw new Error('Er is een fout opgetreden bij het uploaden van het bestand naar de server.');
+      throw new Error(
+        'Er is een fout opgetreden bij het uploaden van het bestand naar de server.',
+      );
     }
-
 
     // 5. Add file to the encounter and also register "timeOut" if it is NULL
     const attachments = encounter.attachments ? encounter.attachments : [];
     attachments.push(key);
     if (!encounter.timeOut) {
-        await this.prismaService.patientEncounter.update({
-            where: {
-                id: encounter.id
-            },
-            data: {
-                attachments,
-                timeOut: new Date(),
-                methodOut: MethodOut.LEFT_FORGOT
-            }
-        });
+      await this.prismaService.patientEncounter.update({
+        where: {
+          id: encounter.id,
+        },
+        data: {
+          attachments,
+          timeOut: new Date(),
+          methodOut: MethodOut.LEFT_FORGOT,
+        },
+      });
     } else {
-        await this.prismaService.patientEncounter.update({
-            where: {
-                id: encounter.id
-            },
-            data: {
-                attachments
-            }
-        });
+      await this.prismaService.patientEncounter.update({
+        where: {
+          id: encounter.id,
+        },
+        data: {
+          attachments,
+        },
+      });
     }
 
     return {

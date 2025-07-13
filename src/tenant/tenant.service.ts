@@ -65,7 +65,7 @@ export class TenantService {
   }
 
   async delete(id: number) {
-    const tenant = await this.prisma.tenant.delete({
+    await this.prisma.tenant.delete({
       where: { id },
     });
     await this.cacheManager.reset();

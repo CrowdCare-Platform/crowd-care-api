@@ -218,6 +218,7 @@ enum ChiefComplaint {
   PLEISTER
   MAANDVERBAND
   ZONNECREME_AFTERSUN
+  NIET_SOMATISCH
 }
 
 enum Gender {

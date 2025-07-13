@@ -1,7 +1,8 @@
 import {
   BadRequestException,
   Body,
-  Controller, Delete,
+  Controller,
+  Delete,
   Get,
   Param,
   Post,
@@ -12,7 +13,10 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { PatientEncounter as PatientEncounterModel, Location as LocationModel } from '.prisma/client';
+import {
+  PatientEncounter as PatientEncounterModel,
+  Location as LocationModel,
+} from '.prisma/client';
 import { EncounterService } from './encounter.service';
 import { CreatePatientEncounterDto } from './dto/createPatientEncounter.dto';
 import { QuerySearchParamsDto } from './dto/querySearchParams.dto';
@@ -25,7 +29,7 @@ import { AddTriageDto } from './dto/addTriage.dto';
 import { RegulationPayloadDto } from './dto/regulationPayload.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { GetEncountersWithFiltersDto } from './dto/getEncountersWithFilters.dto';
-import {RealTimeLocationsOfEventDto} from "./dto/realTimeLocationsOfEventDto";
+import { RealTimeLocationsOfEventDto } from './dto/realTimeLocationsOfEventDto';
 
 @Controller('encounter')
 @UseGuards(LogtoAuthGuard)
@@ -40,7 +44,6 @@ export class EncounterController {
     @Query('eventId') eventId: number,
     @Query('aidPostId') aidPostId: number,
   ) {
-
     const tenantId = +req.headers['tenant-id'];
     if (!tenantId || isNaN(tenantId)) {
       throw new BadRequestException('Tenant ID is invalid');
@@ -54,17 +57,22 @@ export class EncounterController {
     if (!aidPostId || isNaN(aidPostId)) {
       throw new BadRequestException('AidPost ID is invalid');
     }
-    return this.encounterService.deleteRegistration(tenantId, eventId, aidPostId, encounterId);
+    return this.encounterService.deleteRegistration(
+      tenantId,
+      eventId,
+      aidPostId,
+      encounterId,
+    );
   }
 
   @Post('/changeLocation')
   @Roles(['APP'])
   async changeLocation(
-      @Req() req,
-      @Query('eventId') eventId: string,
-      @Query('aidPostId') aidPostId: string,
-      @Query('rfid') rfid: string,
-      @Query('newLocation') newLocation: LocationModel,
+    @Req() req,
+    @Query('eventId') eventId: string,
+    @Query('aidPostId') aidPostId: string,
+    @Query('rfid') rfid: string,
+    @Query('newLocation') newLocation: LocationModel,
   ) {
     const tenantId = +req.headers['tenant-id'];
     if (!tenantId || isNaN(tenantId)) {
@@ -83,20 +91,17 @@ export class EncounterController {
       throw new BadRequestException('No new location in request');
     }
     return this.encounterService.changeLocation(
-        tenantId,
-        +eventId,
-        +aidPostId,
-        rfid,
-        newLocation,
+      tenantId,
+      +eventId,
+      +aidPostId,
+      rfid,
+      newLocation,
     );
   }
 
   @Get('rawData')
   @Roles(['CP-EVENT'])
-  async getRawData(
-    @Req() req,
-    @Query('eventId') eventId: string,
-  ) {
+  async getRawData(@Req() req, @Query('eventId') eventId: string) {
     const tenantId = +req.headers['tenant-id'];
     if (!tenantId || isNaN(tenantId)) {
       throw new BadRequestException('Tenant ID is invalid');
@@ -104,12 +109,8 @@ export class EncounterController {
     if (!eventId || isNaN(+eventId)) {
       throw new BadRequestException('Event ID is invalid');
     }
-    return this.encounterService.getRawData(
-      tenantId,
-      +eventId,
-    );
+    return this.encounterService.getRawData(tenantId, +eventId);
   }
-
 
   @Post('/updateNotes')
   @Roles(['EPD'])
@@ -317,8 +318,8 @@ export class EncounterController {
   @Get('/locations')
   @Roles(['CP-EVENT', 'CP-MED'])
   async getRealTimeLocationsOfEvent(
-      @Req() req,
-      @Query() query: QueryStatsParamsDto,
+    @Req() req,
+    @Query() query: QueryStatsParamsDto,
   ): Promise<RealTimeLocationsOfEventDto[]> {
     const tenantId = +req.headers['tenant-id'];
     if (isNaN(+query.eventId)) {
@@ -329,8 +330,8 @@ export class EncounterController {
     }
 
     return this.encounterService.getRealTimeLocationsOfEvent(
-        +query.eventId,
-        tenantId,
+      +query.eventId,
+      tenantId,
     );
   }
 

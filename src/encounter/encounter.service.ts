@@ -1,15 +1,14 @@
-import {
-  Inject,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import {
   S3Client,
   PutObjectCommand,
   GetObjectCommand,
 } from '@aws-sdk/client-s3';
 import { CreatePatientEncounterDto } from './dto/createPatientEncounter.dto';
-import { PatientEncounter as PatientEncounterModel, Location as LocationModel } from '.prisma/client';
+import {
+  PatientEncounter as PatientEncounterModel,
+  Location as LocationModel,
+} from '.prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { EventService } from '../event/event.service';
 import { QuerySearchParamsDto } from './dto/querySearchParams.dto';
@@ -31,8 +30,8 @@ import {
   TriageCategory,
 } from '@prisma/client';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import {chunkDataByDay} from "../utils/date-functions";
-import {RealTimeLocationsOfEventDto} from "./dto/realTimeLocationsOfEventDto";
+import { chunkDataByDay } from '../utils/date-functions';
+import { RealTimeLocationsOfEventDto } from './dto/realTimeLocationsOfEventDto';
 
 @Injectable()
 export class EncounterService {
@@ -116,7 +115,7 @@ export class EncounterService {
         attachments: createEncounterDto.attachments
           ? createEncounterDto.attachments
           : [],
-        location: LocationModel.WAITING_ROOM
+        location: LocationModel.WAITING_ROOM,
       },
     });
   }
@@ -255,10 +254,10 @@ export class EncounterService {
             };
           },
           active: async ({ filter }: { filter: string }) => {
-            if (filter === "true") {
+            if (filter === 'true') {
               return {
                 where: {
-                  timeOut: null
+                  timeOut: null,
                 },
               };
             } else {
@@ -283,7 +282,7 @@ export class EncounterService {
           deleted: async () => {
             return Promise.resolve({
               where: {
-                deleted: false
+                deleted: false,
               },
             });
           },
@@ -327,7 +326,7 @@ export class EncounterService {
       },
       include: {
         locationLogs: true,
-      }
+      },
     });
 
     if (!encounter) {
@@ -359,7 +358,7 @@ export class EncounterService {
         where: {
           qrCode: qrCode,
           timeOut: null,
-            deleted: false,
+          deleted: false,
         },
       });
       return encounter;
@@ -550,8 +549,8 @@ export class EncounterService {
   }
 
   private async calculateRealTimeLocationsOfEvent(
-      eventId: number,
-      tenantId: number,
+    eventId: number,
+    tenantId: number,
   ): Promise<RealTimeLocationsOfEventDto[]> {
     // Step 1: Get all aid posts of the event
     const aidPosts = await this.eventService.getAidPosts(eventId, tenantId);
@@ -614,16 +613,26 @@ export class EncounterService {
           deleted: false,
         },
         _count: { id: true },
-      })
+      }),
     ]);
 
     // Step 3: Combine results
     return aidPosts.map((aidPost) => {
-      const WAITING = WAITINGPerAidPost.find((encounter) => encounter.aidPostId === aidPost.id);
-      const T1 = T1PerAidPost.find((encounter) => encounter.aidPostId === aidPost.id);
-      const T2 = T2PerAidPost.find((encounter) => encounter.aidPostId === aidPost.id);
-      const T3 = T3PerAidPost.find((encounter) => encounter.aidPostId === aidPost.id);
-      const SLEEP = SLEEPPerAidPost.find((encounter) => encounter.aidPostId === aidPost.id);
+      const WAITING = WAITINGPerAidPost.find(
+        (encounter) => encounter.aidPostId === aidPost.id,
+      );
+      const T1 = T1PerAidPost.find(
+        (encounter) => encounter.aidPostId === aidPost.id,
+      );
+      const T2 = T2PerAidPost.find(
+        (encounter) => encounter.aidPostId === aidPost.id,
+      );
+      const T3 = T3PerAidPost.find(
+        (encounter) => encounter.aidPostId === aidPost.id,
+      );
+      const SLEEP = SLEEPPerAidPost.find(
+        (encounter) => encounter.aidPostId === aidPost.id,
+      );
 
       return {
         aidPostId: aidPost.id,
@@ -631,7 +640,7 @@ export class EncounterService {
         T1: T1 ? T1._count.id : 0,
         T2: T2 ? T2._count.id : 0,
         T3: T3 ? T3._count.id : 0,
-        SLEEP: SLEEP ? SLEEP._count.id : 0
+        SLEEP: SLEEP ? SLEEP._count.id : 0,
       };
     });
   }
@@ -657,20 +666,23 @@ export class EncounterService {
   }
 
   async getRealTimeLocationsOfEvent(
-      eventId: number,
-      tenantId: number,
+    eventId: number,
+    tenantId: number,
   ): Promise<RealTimeLocationsOfEventDto[]> {
-    const cachedValue = await this.cacheManager.get<RealTimeLocationsOfEventDto[]>(
-        `realTimeLocationsOfEvent-${eventId}-${tenantId}`,
-    );
+    const cachedValue = await this.cacheManager.get<
+      RealTimeLocationsOfEventDto[]
+    >(`realTimeLocationsOfEvent-${eventId}-${tenantId}`);
     if (cachedValue) {
       return cachedValue;
     } else {
-      const locations = await this.calculateRealTimeLocationsOfEvent(eventId, tenantId);
+      const locations = await this.calculateRealTimeLocationsOfEvent(
+        eventId,
+        tenantId,
+      );
       await this.cacheManager.set(
-          `realTimeLocationsOfEvent-${eventId}-${tenantId}`,
-          locations,
-          60000,
+        `realTimeLocationsOfEvent-${eventId}-${tenantId}`,
+        locations,
+        60000,
       );
       return locations;
     }
@@ -722,7 +734,12 @@ export class EncounterService {
     await this.eventService.getAidPost(eventId, aidPostId, tenantId);
     if (encounterId) {
       const encounter = await this.findOne(tenantId, +encounterId);
-      const newLocation = encounter.triage === TriageCategory.GREEN ? LocationModel.T3 : encounter.triage === TriageCategory.YELLOW ? LocationModel.T2 : LocationModel.T1;
+      const newLocation =
+        encounter.triage === TriageCategory.GREEN
+          ? LocationModel.T3
+          : encounter.triage === TriageCategory.YELLOW
+            ? LocationModel.T2
+            : LocationModel.T1;
       await this.prisma.patientEncounter.update({
         where: {
           id: encounter.id,
@@ -738,8 +755,8 @@ export class EncounterService {
           toLocation: newLocation,
           patientEncounter: {
             connect: {
-              id: encounter.id
-            }
+              id: encounter.id,
+            },
           },
         },
       });
@@ -750,10 +767,15 @@ export class EncounterService {
           timeStartTreatment: null,
         },
       });
-      const newLocation = encounter.triage === TriageCategory.GREEN ? LocationModel.T3 : encounter.triage === TriageCategory.YELLOW ? LocationModel.T2 : LocationModel.T1;
+      const newLocation =
+        encounter.triage === TriageCategory.GREEN
+          ? LocationModel.T3
+          : encounter.triage === TriageCategory.YELLOW
+            ? LocationModel.T2
+            : LocationModel.T1;
       await this.prisma.patientEncounter.update({
         where: {
-          id: encounter.id
+          id: encounter.id,
         },
         data: {
           timeStartTreatment: new Date(),
@@ -766,8 +788,8 @@ export class EncounterService {
           toLocation: newLocation,
           patientEncounter: {
             connect: {
-              id: encounter.id
-            }
+              id: encounter.id,
+            },
           },
         },
       });
@@ -892,12 +914,18 @@ export class EncounterService {
   ) {
     await this.eventService.getAidPost(eventId, aidPostId, tenantId);
     const encounter = await this.prisma.patientEncounter.findFirst({
-        where: {
-          rfid: rfid,
-          triage: null,
-        }
+      where: {
+        rfid: rfid,
+        triage: null,
+      },
     });
-    const newLocation = triageBody.timeStartTreatment ? (triageBody.triageCategory === TriageCategory.GREEN ? LocationModel.T3 : triageBody.triageCategory === TriageCategory.YELLOW ? LocationModel.T2 : LocationModel.T1) : undefined;
+    const newLocation = triageBody.timeStartTreatment
+      ? triageBody.triageCategory === TriageCategory.GREEN
+        ? LocationModel.T3
+        : triageBody.triageCategory === TriageCategory.YELLOW
+          ? LocationModel.T2
+          : LocationModel.T1
+      : undefined;
     const reg = await this.prisma.patientEncounter.update({
       where: {
         id: encounter.id,
@@ -919,8 +947,8 @@ export class EncounterService {
           toLocation: newLocation,
           patientEncounter: {
             connect: {
-              id: encounter.id
-            }
+              id: encounter.id,
+            },
           },
         },
       });
@@ -1085,65 +1113,70 @@ export class EncounterService {
     const res = await this.prisma.patientEncounter.findMany({
       where: {
         aidPostId: {
-            in: aidPosts.map((aidPost) => aidPost.id),
+          in: aidPosts.map((aidPost) => aidPost.id),
         },
         timeOut: {
-            not: null,
+          not: null,
         },
         triage: {
-            not: null
+          not: null,
         },
         deleted: false,
       },
       orderBy: { timeIn: 'asc' },
     });
-      return chunkDataByDay(res);
+    return chunkDataByDay(res);
   }
 
   async changeLocation(
-      tenantId: number,
-      eventId: number,
-      aidPostId: number,
-      rfid: string,
-      newLocation: LocationModel,
+    tenantId: number,
+    eventId: number,
+    aidPostId: number,
+    rfid: string,
+    newLocation: LocationModel,
   ) {
     await this.eventService.getAidPost(eventId, aidPostId, tenantId);
-      const encounter = await this.prisma.patientEncounter.findFirst({
-        where: {
-          rfid,
-          timeOut: null,
-        },
-      });
-      await this.prisma.patientEncounter.update({
-        where: {
-          id: encounter.id
-        },
-        data: {
-          location: newLocation,
-          timeLastLocationChange: new Date(),
-        },
-      });
-      return this.prisma.patientEncounterLocationLog.create({
-        data: {
-          toLocation: newLocation,
-          patientEncounter: {
-            connect: {
-              id: encounter.id
-            }
+    const encounter = await this.prisma.patientEncounter.findFirst({
+      where: {
+        rfid,
+        timeOut: null,
+      },
+    });
+    await this.prisma.patientEncounter.update({
+      where: {
+        id: encounter.id,
+      },
+      data: {
+        location: newLocation,
+        timeLastLocationChange: new Date(),
+      },
+    });
+    return this.prisma.patientEncounterLocationLog.create({
+      data: {
+        toLocation: newLocation,
+        patientEncounter: {
+          connect: {
+            id: encounter.id,
           },
         },
-      });
-    }
+      },
+    });
+  }
 
-    async deleteRegistration(tenantId: number, eventId: number, aidPostId: number, encounterId: number) {
-      await this.eventService.getAidPost(eventId, aidPostId, tenantId);
-      return this.prisma.patientEncounter.update({
-        where: {
-          id: encounterId,
-        },
-        data: {
-          deleted: true,
-        },
-      });
-    }
+  async deleteRegistration(
+    tenantId: number,
+    eventId: number,
+    aidPostId: number,
+    encounterId: number,
+  ) {
+    await this.eventService.getAidPost(eventId, aidPostId, tenantId);
+    return this.prisma.patientEncounter.update({
+      where: {
+        id: encounterId,
+      },
+      data: {
+        deleted: true,
+      },
+    });
+  }
 }
