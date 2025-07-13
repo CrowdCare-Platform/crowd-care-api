@@ -238,4 +238,5 @@ enum Location {
   T2
   T3
   SLEEP
+  PSY
 }
