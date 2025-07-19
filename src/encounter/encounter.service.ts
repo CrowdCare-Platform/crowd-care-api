@@ -935,11 +935,13 @@ export class EncounterService {
       },
     });
     const newLocation = triageBody.timeStartTreatment
-      ? triageBody.triageCategory === TriageCategory.GREEN
-        ? LocationModel.T3
-        : triageBody.triageCategory === TriageCategory.YELLOW
-          ? LocationModel.T2
-          : LocationModel.T1
+      ? triageBody.chiefComplaint === ChiefComplaint.NIET_SOMATISCH
+        ? LocationModel.PSY
+        : triageBody.triageCategory === TriageCategory.GREEN
+          ? LocationModel.T3
+          : triageBody.triageCategory === TriageCategory.YELLOW
+            ? LocationModel.T2
+            : LocationModel.T1
       : undefined;
     const reg = await this.prisma.patientEncounter.update({
       where: {
