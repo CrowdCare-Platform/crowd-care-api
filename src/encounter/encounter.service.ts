@@ -785,11 +785,13 @@ export class EncounterService {
         },
       });
       const newLocation =
-        encounter.triage === TriageCategory.GREEN
-          ? LocationModel.T3
-          : encounter.triage === TriageCategory.YELLOW
-            ? LocationModel.T2
-            : LocationModel.T1;
+        encounter.chiefComplaint === ChiefComplaint.NIET_SOMATISCH
+          ? LocationModel.PSY
+          : encounter.triage === TriageCategory.GREEN
+            ? LocationModel.T3
+            : encounter.triage === TriageCategory.YELLOW
+              ? LocationModel.T2
+              : LocationModel.T1;
       await this.prisma.patientEncounter.update({
         where: {
           id: encounter.id,
