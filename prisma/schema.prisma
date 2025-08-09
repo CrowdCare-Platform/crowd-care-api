@@ -26,19 +26,20 @@ model Tenant {
 }
 
 model Event {
-  id          Int         @id @default(autoincrement())
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  name        String      @db.VarChar(255)
-  startDate   DateTime
-  endDate     DateTime
-  description String?
-  Hospital    Hospital[]
-  Ambulance   Ambulance[]
-  tenantId    Int
-  tenant      Tenant      @relation(fields: [tenantId], references: [id])
-  AidPost     AidPost[]
-  logo        String?     @db.VarChar(255)
+  id               Int                @id @default(autoincrement())
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  name             String             @db.VarChar(255)
+  startDate        DateTime
+  endDate          DateTime
+  description      String?
+  Hospital         Hospital[]
+  Ambulance        Ambulance[]
+  tenantId         Int
+  tenant           Tenant             @relation(fields: [tenantId], references: [id])
+  AidPost          AidPost[]
+  logo             String?            @db.VarChar(255)
+  PatientEncounter PatientEncounter[]
 }
 
 model AidPost {
@@ -87,8 +88,10 @@ model PatientEncounter {
   timeLastLocationChange DateTime                      @default(now())
   locationLogs           PatientEncounterLocationLog[]
   deleted                Boolean                       @default(false)
+  event                  Event                         @relation(fields: [eventId], references: [id])
+  eventId                Int
 
-  @@index(fields: [rfid, qrCode])
+  @@index(fields: [rfid, qrCode, eventId])
 }
 
 model PatientEncounterLocationLog {

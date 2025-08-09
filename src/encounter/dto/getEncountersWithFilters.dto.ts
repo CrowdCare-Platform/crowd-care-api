@@ -89,4 +89,9 @@ export class GetEncountersWithFiltersDto {
   @Type(() => Number)
   @IsOptional()
   take?: number;
+
+  @IsNumber()
+  @Type(() => Number)
+  @IsOptional()
+  eventId?: number;
 }

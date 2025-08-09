@@ -60,6 +60,11 @@ export class EncounterService {
 
     return this.prisma.patientEncounter.create({
       data: {
+        event: {
+          connect: {
+            id: eventId,
+          },
+        },
         qrCode: createEncounterDto.qrCode
           ? createEncounterDto.qrCode
           : undefined,
@@ -127,6 +132,15 @@ export class EncounterService {
       await applyFilters<Prisma.PatientEncounterWhereInput>({
         appliedFiltersInput: query,
         availableFilters: {
+          eventId: async ({ filter }: { filter: string }) => {
+            return {
+              where: {
+                eventId: {
+                  equals: +filter,
+                },
+              },
+            };
+          },
           qrCode: async ({ filter }: { filter: string }) => {
             return {
               where: {
@@ -308,6 +322,7 @@ export class EncounterService {
 
     return this.prisma.patientEncounter.findMany({
       where: {
+        eventId: +query.eventId ? +query.eventId : undefined,
         aidPostId: query.aidPostId ? +query.aidPostId : undefined,
         rfid: query.rfid ? query.rfid : undefined,
         qrCode: query.qrCode ? query.qrCode : undefined,
