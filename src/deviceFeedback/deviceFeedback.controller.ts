@@ -3,6 +3,7 @@ import {
   Body,
   Controller,
   Delete,
+  Get,
   Post,
   Query,
   Req,
@@ -18,7 +19,7 @@ import { DeviceFeedbackService } from './deviceFeedback.service';
 export class DeviceFeedbackController {
   constructor(private readonly deviceFeedbackService: DeviceFeedbackService) {}
   @Post()
-  @Roles(['ADMIN', 'APP', 'CP-MED', 'CP-EVENT', 'EPD'])
+  @Roles(['APP'])
   async addFeedback(
     @Req() req,
     @Query('eventId') eventId: string,
@@ -45,6 +46,17 @@ export class DeviceFeedbackController {
       userId,
       payload,
     );
+  }
+
+  @Get()
+  @Roles(['ADMIN'])
+  async getAllFeedback(@Req() req) {
+    const tenantId = +req.headers['tenant-id'];
+    if (!tenantId || isNaN(tenantId)) {
+      throw new BadRequestException('Tenant ID is invalid');
+    }
+
+    return this.deviceFeedbackService.getAllDeviceFeedback();
   }
 
   @Delete()

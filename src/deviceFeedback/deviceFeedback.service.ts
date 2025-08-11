@@ -50,4 +50,12 @@ export class DeviceFeedbackService {
   async deleteAllDeviceFeedback() {
     return this.prismaService.deviceFeedback.deleteMany({});
   }
+
+  async getAllDeviceFeedback() {
+    return this.prismaService.deviceFeedback.findMany({
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+  }
 }
