@@ -27,7 +27,6 @@ export class DeviceFeedbackService {
           modelName: payload.modelName || '',
           deviceName: payload.deviceName || '',
           osVersion: payload.osVersion || '',
-          totalMemory: payload.totalMemory || -1,
           extraInfo: `Tenant ID: ${tenantId}, Event ID: ${eventId}, AidPost ID: ${aidPostId}, User ID: ${userId}`,
         },
       });
@@ -40,7 +39,6 @@ export class DeviceFeedbackService {
           modelName: payload.modelName || '',
           deviceName: payload.deviceName || '',
           osVersion: payload.osVersion || '',
-          totalMemory: payload.totalMemory || -1,
           extraInfo: `Tenant ID: ${tenantId}, Event ID: ${eventId}, AidPost ID: ${aidPostId}, User ID: ${userId}`,
         },
       });
