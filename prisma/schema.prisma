@@ -164,6 +164,22 @@ model Feedback {
   extraInfo   String
 }
 
+model DeviceFeedback {
+  id          Int      @id @default(autoincrement())
+  user        String
+  battery     Decimal
+  brand       String
+  modelName   String
+  deviceName  String
+  osVersion   String
+  totalMemory Int
+  extraInfo   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index(fields: [user])
+}
+
 enum WAPA {
   WAKKER
   AANSPREEKBAAR

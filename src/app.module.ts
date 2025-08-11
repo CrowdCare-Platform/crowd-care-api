@@ -11,6 +11,7 @@ import { CacheModule } from '@nestjs/cache-manager';
 import { MedicationStorageModule } from './medication-storage/medication-storage.module';
 import { FeedbackModule } from './feedback/feedback.module';
 import { UploadModule } from './upload/upload.module';
+import { DeviceFeedbackModule } from './deviceFeedback/deviceFeedback.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { UploadModule } from './upload/upload.module';
     }),
     MedicationStorageModule,
     FeedbackModule,
+    DeviceFeedbackModule,
     UploadModule,
   ],
   controllers: [AppController],
