@@ -1145,23 +1145,40 @@ export class EncounterService {
   }
 
   async getRawData(tenantId: number, eventId: number) {
-    const aidPosts = await this.eventService.getAidPosts(eventId, tenantId);
-    const res = await this.prisma.patientEncounter.findMany({
-      where: {
-        aidPostId: {
-          in: aidPosts.map((aidPost) => aidPost.id),
+    const cachedValue = await this.cacheManager.get<any[]>(
+      `rawData-${eventId}-${tenantId}`,
+    );
+
+    if (cachedValue) {
+      return cachedValue;
+    } else {
+      const aidPosts = await this.eventService.getAidPosts(eventId, tenantId);
+      const res = await this.prisma.patientEncounter.findMany({
+        where: {
+          aidPostId: {
+            in: aidPosts.map((aidPost) => aidPost.id),
+          },
+          timeOut: {
+            not: null,
+          },
+          triage: {
+            not: null,
+          },
+          deleted: false,
         },
-        timeOut: {
-          not: null,
-        },
-        triage: {
-          not: null,
-        },
-        deleted: false,
-      },
-      orderBy: { timeIn: 'asc' },
-    });
-    return chunkDataByDay(res);
+        orderBy: { timeIn: 'asc' },
+      });
+
+      const result = chunkDataByDay(res);
+
+      await this.cacheManager.set(
+        `rawData-${eventId}-${tenantId}`,
+        result,
+        30000,
+      );
+
+      return result;
+    }
   }
 
   async changeLocation(

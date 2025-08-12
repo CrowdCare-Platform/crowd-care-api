@@ -100,7 +100,7 @@ export class EncounterController {
   }
 
   @Get('rawData')
-  @Roles(['CP-EVENT'])
+  @Roles(['CP-EVENT', 'CP-MED'])
   async getRawData(@Req() req, @Query('eventId') eventId: string) {
     const tenantId = +req.headers['tenant-id'];
     if (!tenantId || isNaN(tenantId)) {
