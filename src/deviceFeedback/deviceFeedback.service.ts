@@ -51,10 +51,14 @@ export class DeviceFeedbackService {
 
   async getAllDeviceFeedback() {
     return this.prismaService.deviceFeedback.findMany({
-      orderBy: {
-        user: 'asc',
-        updatedAt: 'desc',
-      },
+      orderBy: [
+        {
+          user: 'asc',
+        },
+        {
+          updatedAt: 'desc',
+        },
+      ],
     });
   }
 }
