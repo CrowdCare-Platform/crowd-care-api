@@ -52,7 +52,8 @@ export class DeviceFeedbackService {
   async getAllDeviceFeedback() {
     return this.prismaService.deviceFeedback.findMany({
       orderBy: {
-        createdAt: 'desc',
+        user: 'asc',
+        updatedAt: 'desc',
       },
     });
   }
